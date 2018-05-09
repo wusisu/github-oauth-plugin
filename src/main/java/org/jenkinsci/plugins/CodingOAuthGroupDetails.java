@@ -12,7 +12,7 @@ import hudson.security.GroupDetails;
  * @author Mike
  *
  */
-public class GithubOAuthGroupDetails extends GroupDetails {
+public class CodingOAuthGroupDetails extends GroupDetails {
 
     private final GHOrganization org;
     private final GHTeam team;
@@ -22,7 +22,7 @@ public class GithubOAuthGroupDetails extends GroupDetails {
     * Group based on organization name
     * @param org the github organization
     */
-    public GithubOAuthGroupDetails(GHOrganization org) {
+    public CodingOAuthGroupDetails(GHOrganization org) {
         super();
         this.org = org;
         this.team = null;
@@ -32,7 +32,7 @@ public class GithubOAuthGroupDetails extends GroupDetails {
     * Group based on team name
      * @param team the github team
      */
-    public GithubOAuthGroupDetails(GHTeam team) {
+    public CodingOAuthGroupDetails(GHTeam team) {
         super();
         this.org = team.getOrganization();
         this.team = team;

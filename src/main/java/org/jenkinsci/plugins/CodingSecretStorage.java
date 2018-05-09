@@ -30,18 +30,18 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public class GithubSecretStorage {
+public class CodingSecretStorage {
 
-    private GithubSecretStorage(){
+    private CodingSecretStorage(){
         // no accessible constructor
     }
 
     public static boolean contains(@Nonnull User user) {
-        return user.getProperty(GithubAccessTokenProperty.class) != null;
+        return user.getProperty(CodingAccessTokenProperty.class) != null;
     }
 
     public static @CheckForNull String retrieve(@Nonnull User user) {
-        GithubAccessTokenProperty property = user.getProperty(GithubAccessTokenProperty.class);
+        CodingAccessTokenProperty property = user.getProperty(CodingAccessTokenProperty.class);
         if (property == null) {
             Log.debug("Cache miss for username: " + user.getId());
             return null;
@@ -54,7 +54,7 @@ public class GithubSecretStorage {
     public static void put(@Nonnull User user, @Nonnull String accessToken) {
         Log.debug("Populating the cache for username: " + user.getId());
         try {
-            user.addProperty(new GithubAccessTokenProperty(accessToken));
+            user.addProperty(new CodingAccessTokenProperty(accessToken));
         } catch (IOException e) {
             Log.warn("Received an exception when trying to add the GitHub access token to the user: " + user.getId(), e);
         }

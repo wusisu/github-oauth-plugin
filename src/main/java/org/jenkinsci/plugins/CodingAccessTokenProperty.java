@@ -37,10 +37,10 @@ import javax.annotation.Nonnull;
  *
  * @since TODO
  */
-public class GithubAccessTokenProperty extends UserProperty {
+public class CodingAccessTokenProperty extends UserProperty {
     private final Secret accessToken;
 
-    public GithubAccessTokenProperty(String accessToken) {
+    public CodingAccessTokenProperty(String accessToken) {
         this.accessToken = Secret.fromString(accessToken);
     }
 
@@ -49,7 +49,7 @@ public class GithubAccessTokenProperty extends UserProperty {
     }
 
     @Extension
-    @Symbol("githubAccessToken")
+    @Symbol("codingAccessToken")
     public static final class DescriptorImpl extends UserPropertyDescriptor {
         @Override
         public boolean isEnabled() {

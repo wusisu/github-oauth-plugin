@@ -60,7 +60,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class GithubAccessTokenPropertyTest {
+public class CodingAccessTokenPropertyTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
@@ -173,7 +173,7 @@ public class GithubAccessTokenPropertyTest {
                     new HashMap<String, Object>() {{
                         put("login", currentLogin);
                         put("name", currentLogin + "_name");
-                        // to avoid triggering a second call, due to GithubSecurityRealm:382
+                        // to avoid triggering a second call, due to CodingSecurityRealm:382
                         put("created_at", "2008-01-14T04:33:35Z");
                         put("url", serverUri + "/users/_specific_login_");
                     }}
@@ -267,7 +267,7 @@ public class GithubAccessTokenPropertyTest {
         String clientSecret = "yyy";
         String oauthScopes = "read:org";
 
-        GithubSecurityRealm githubSecurityRealm = new GithubSecurityRealm(
+        CodingSecurityRealm codingSecurityRealm = new CodingSecurityRealm(
                 githubWebUri,
                 githubApiUri,
                 clientID,
@@ -275,7 +275,7 @@ public class GithubAccessTokenPropertyTest {
                 oauthScopes
         );
 
-        j.jenkins.setSecurityRealm(githubSecurityRealm);
+        j.jenkins.setSecurityRealm(codingSecurityRealm);
     }
 
     @After
@@ -305,7 +305,7 @@ public class GithubAccessTokenPropertyTest {
         // request whoAmI with GitHubToken => group populated
         makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceGitHubToken), "alice", Arrays.asList("authenticated", "org-a", "org-a*team-b"));
 
-        GithubAuthenticationToken.clearCaches();
+        CodingAuthenticationToken.clearCaches();
 
         // no authentication in session but use the cache
         makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "org-a", "org-a*team-b"));
@@ -335,7 +335,7 @@ public class GithubAccessTokenPropertyTest {
         // request whoAmI with ApiRestToken => group populated (due to login event)
         makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "org-c", "org-c*team-d"));
 
-        GithubAuthenticationToken.clearCaches();
+        CodingAuthenticationToken.clearCaches();
         wc = j.createWebClient();
         // retrieve the security group even without the cookie (using LastGrantedAuthorities this time)
         makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "org-c", "org-c*team-d"));

@@ -56,10 +56,10 @@ import jenkins.scm.api.SCMSource;
  * @author Mike
  *
  */
-public class GithubRequireOrganizationMembershipACL extends ACL {
+public class CodingRequireOrganizationMembershipACL extends ACL {
 
     private static final Logger log = Logger
-            .getLogger(GithubRequireOrganizationMembershipACL.class.getName());
+            .getLogger(CodingRequireOrganizationMembershipACL.class.getName());
 
     private final List<String> organizationNameList;
     private final List<String> adminUserNameList;
@@ -80,11 +80,11 @@ public class GithubRequireOrganizationMembershipACL extends ACL {
      */
     @Override
     public boolean hasPermission(@Nonnull Authentication a, @Nonnull Permission permission) {
-        if (a instanceof GithubAuthenticationToken) {
+        if (a instanceof CodingAuthenticationToken) {
             if (!a.isAuthenticated())
                 return false;
 
-            GithubAuthenticationToken authenticationToken = (GithubAuthenticationToken) a;
+            CodingAuthenticationToken authenticationToken = (CodingAuthenticationToken) a;
 
             String candidateName = a.getName();
 
@@ -252,7 +252,7 @@ public class GithubRequireOrganizationMembershipACL extends ACL {
         return permission.getId().equals("hudson.model.Item.ViewStatus");
     }
 
-    public boolean hasRepositoryPermission(GithubAuthenticationToken authenticationToken, Permission permission) {
+    public boolean hasRepositoryPermission(CodingAuthenticationToken authenticationToken, Permission permission) {
         String repositoryName = getRepositoryName();
 
         if (repositoryName == null) {
@@ -302,8 +302,8 @@ public class GithubRequireOrganizationMembershipACL extends ACL {
             }
         }
         if (repoUrl != null) {
-            GitHubRepositoryName githubRepositoryName =
-                GitHubRepositoryName.create(repoUrl);
+            CodingRepositoryName githubRepositoryName =
+                CodingRepositoryName.create(repoUrl);
             if (githubRepositoryName != null) {
                 repositoryName = githubRepositoryName.userName + "/"
                     + githubRepositoryName.repositoryName;
@@ -312,15 +312,15 @@ public class GithubRequireOrganizationMembershipACL extends ACL {
         return repositoryName;
     }
 
-    public GithubRequireOrganizationMembershipACL(String adminUserNames,
-            String organizationNames,
-            boolean authenticatedUserReadPermission,
-            boolean useRepositoryPermissions,
-            boolean authenticatedUserCreateJobPermission,
-            boolean allowGithubWebHookPermission,
-            boolean allowCcTrayPermission,
-            boolean allowAnonymousReadPermission,
-            boolean allowAnonymousJobStatusPermission) {
+    public CodingRequireOrganizationMembershipACL(String adminUserNames,
+                                                  String organizationNames,
+                                                  boolean authenticatedUserReadPermission,
+                                                  boolean useRepositoryPermissions,
+                                                  boolean authenticatedUserCreateJobPermission,
+                                                  boolean allowGithubWebHookPermission,
+                                                  boolean allowCcTrayPermission,
+                                                  boolean allowAnonymousReadPermission,
+                                                  boolean allowAnonymousJobStatusPermission) {
         super();
 
         this.authenticatedUserReadPermission      = authenticatedUserReadPermission;
@@ -349,8 +349,8 @@ public class GithubRequireOrganizationMembershipACL extends ACL {
         this.item = null;
     }
 
-    public GithubRequireOrganizationMembershipACL cloneForProject(AbstractItem item) {
-      return new GithubRequireOrganizationMembershipACL(
+    public CodingRequireOrganizationMembershipACL cloneForProject(AbstractItem item) {
+      return new CodingRequireOrganizationMembershipACL(
           this.adminUserNameList,
           this.organizationNameList,
           this.authenticatedUserReadPermission,
@@ -363,16 +363,16 @@ public class GithubRequireOrganizationMembershipACL extends ACL {
           item);
     }
 
-    public GithubRequireOrganizationMembershipACL(List<String> adminUserNameList,
-            List<String> organizationNameList,
-            boolean authenticatedUserReadPermission,
-            boolean useRepositoryPermissions,
-            boolean authenticatedUserCreateJobPermission,
-            boolean allowGithubWebHookPermission,
-            boolean allowCcTrayPermission,
-            boolean allowAnonymousReadPermission,
-            boolean allowAnonymousJobStatusPermission,
-            AbstractItem item) {
+    public CodingRequireOrganizationMembershipACL(List<String> adminUserNameList,
+                                                  List<String> organizationNameList,
+                                                  boolean authenticatedUserReadPermission,
+                                                  boolean useRepositoryPermissions,
+                                                  boolean authenticatedUserCreateJobPermission,
+                                                  boolean allowGithubWebHookPermission,
+                                                  boolean allowCcTrayPermission,
+                                                  boolean allowAnonymousReadPermission,
+                                                  boolean allowAnonymousJobStatusPermission,
+                                                  AbstractItem item) {
         super();
 
         this.adminUserNameList                    = adminUserNameList;

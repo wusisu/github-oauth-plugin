@@ -26,7 +26,7 @@ package org.jenkinsci.plugins;
 
 import jenkins.model.Jenkins;
 import junit.framework.TestCase;
-import org.jenkinsci.plugins.GithubSecurityRealm.DescriptorImpl;
+import org.jenkinsci.plugins.CodingSecurityRealm.DescriptorImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,14 +36,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Jenkins.class, GithubSecurityRealm.class, DescriptorImpl.class})
-public class GithubLogoutActionTest extends TestCase {
+@PrepareForTest({Jenkins.class, CodingSecurityRealm.class, DescriptorImpl.class})
+public class CodingLogoutActionTest extends TestCase {
 
     @Mock
     private Jenkins jenkins;
 
     @Mock
-    private GithubSecurityRealm securityRealm;
+    private CodingSecurityRealm securityRealm;
 
     @Mock
     private DescriptorImpl descriptor;
@@ -64,14 +64,14 @@ public class GithubLogoutActionTest extends TestCase {
     @Test
     public void testGetGitHubText_gh() {
         mockGithubSecurityRealmWebUriFor("https://github.com");
-        GithubLogoutAction ghlogout = new GithubLogoutAction();
+        CodingLogoutAction ghlogout = new CodingLogoutAction();
         assertEquals("GitHub", ghlogout.getGitHubText());
     }
 
     @Test
     public void testGetGitHubText_ghe() {
         mockGithubSecurityRealmWebUriFor("https://ghe.example.com");
-        GithubLogoutAction ghlogout = new GithubLogoutAction();
+        CodingLogoutAction ghlogout = new CodingLogoutAction();
         assertEquals("GitHub Enterprise", ghlogout.getGitHubText());
     }
 }

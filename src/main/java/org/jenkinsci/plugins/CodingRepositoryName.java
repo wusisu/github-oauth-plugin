@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubRepositoryName {
+public class CodingRepositoryName {
 
     private static final Pattern[] URL_PATTERNS = {
         /**
@@ -66,20 +66,20 @@ public class GitHubRepositoryName {
     };
 
     /**
-     * Create {@link GitHubRepositoryName} from URL
+     * Create {@link CodingRepositoryName} from URL
      *
      * @param url
      *            must be non-null
-     * @return parsed {@link GitHubRepositoryName} or null if it cannot be
+     * @return parsed {@link CodingRepositoryName} or null if it cannot be
      *         parsed from the specified URL
      */
-    public static GitHubRepositoryName create(final String url) {
+    public static CodingRepositoryName create(final String url) {
         LOGGER.log(Level.FINE, "Constructing from URL {0}", url);
         for (Pattern p : URL_PATTERNS) {
             Matcher m = p.matcher(url.trim());
             if (m.matches()) {
                 LOGGER.log(Level.FINE, "URL matches {0}", m);
-                GitHubRepositoryName ret = new GitHubRepositoryName(m.group(1), m.group(2),
+                CodingRepositoryName ret = new CodingRepositoryName(m.group(1), m.group(2),
                         m.group(3));
                 LOGGER.log(Level.FINE, "Object is {0}", ret);
                 return ret;
@@ -91,7 +91,7 @@ public class GitHubRepositoryName {
 
     public final String host, userName, repositoryName;
 
-    public GitHubRepositoryName(String host, String userName, String repositoryName) {
+    public CodingRepositoryName(String host, String userName, String repositoryName) {
         this.host           = host;
         this.userName       = userName;
         this.repositoryName = repositoryName;
@@ -102,6 +102,6 @@ public class GitHubRepositoryName {
         return "GitHubRepository[host="+host+",username="+userName+",repository="+repositoryName+"]";
     }
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubRepositoryName.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CodingRepositoryName.class.getName());
 
 }

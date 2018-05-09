@@ -22,14 +22,14 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({GitHub.class, GitHubBuilder.class, Jenkins.class, GithubSecurityRealm.class})
-public class GithubAuthenticationTokenTest {
+@PrepareForTest({GitHub.class, GitHubBuilder.class, Jenkins.class, CodingSecurityRealm.class})
+public class CodingAuthenticationTokenTest {
 
     @Mock
     private Jenkins jenkins;
 
     @Mock
-    private GithubSecurityRealm securityRealm;
+    private CodingSecurityRealm securityRealm;
 
     @Before
     public void setUp() throws Exception {
@@ -42,9 +42,9 @@ public class GithubAuthenticationTokenTest {
     @Test
     public void testTokenSerialization() throws IOException {
         mockGHMyselfAs("bob");
-        GithubAuthenticationToken authenticationToken = new GithubAuthenticationToken("accessToken", "https://api.github.com");
+        CodingAuthenticationToken authenticationToken = new CodingAuthenticationToken("accessToken", "https://api.github.com");
         byte[] serializedToken = SerializationUtils.serialize(authenticationToken);
-        GithubAuthenticationToken deserializedToken = (GithubAuthenticationToken) SerializationUtils.deserialize(serializedToken);
+        CodingAuthenticationToken deserializedToken = (CodingAuthenticationToken) SerializationUtils.deserialize(serializedToken);
         assertEquals(deserializedToken.getAccessToken(), authenticationToken.getAccessToken());
         assertEquals(deserializedToken.getPrincipal(), authenticationToken.getPrincipal());
         assertEquals(deserializedToken.getGithubServer(), authenticationToken.getGithubServer());
@@ -53,7 +53,7 @@ public class GithubAuthenticationTokenTest {
 
     @After
     public void after() {
-        GithubAuthenticationToken.clearCaches();
+        CodingAuthenticationToken.clearCaches();
     }
 
     private GHMyself mockGHMyselfAs(String username) throws IOException {

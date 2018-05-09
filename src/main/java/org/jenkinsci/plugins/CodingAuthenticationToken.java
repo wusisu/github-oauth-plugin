@@ -26,7 +26,6 @@ THE SOFTWARE.
  */
 package org.jenkinsci.plugins;
 
-import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.squareup.okhttp.OkHttpClient;
@@ -76,7 +75,7 @@ import javax.annotation.Nonnull;
  *         to hold the authentication token from the github oauth process.
  *
  */
-public class GithubAuthenticationToken extends AbstractAuthenticationToken {
+public class CodingAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = 2L;
 
@@ -86,7 +85,7 @@ public class GithubAuthenticationToken extends AbstractAuthenticationToken {
 
     private transient GitHub gh;
     private transient GHMyself me;
-    private transient GithubSecurityRealm myRealm = null;
+    private transient CodingSecurityRealm myRealm = null;
 
     public static final TimeUnit CACHE_EXPIRY = TimeUnit.HOURS;
     /**
@@ -182,7 +181,7 @@ public class GithubAuthenticationToken extends AbstractAuthenticationToken {
         }
     }
 
-    public GithubAuthenticationToken(final String accessToken, final String githubServer) throws IOException {
+    public CodingAuthenticationToken(final String accessToken, final String githubServer) throws IOException {
         super(new GrantedAuthority[] {});
 
         this.accessToken = accessToken;
@@ -201,9 +200,9 @@ public class GithubAuthenticationToken extends AbstractAuthenticationToken {
         if (jenkins == null) {
             throw new IllegalStateException("Jenkins not started");
         }
-        if(jenkins.getSecurityRealm() instanceof GithubSecurityRealm) {
+        if(jenkins.getSecurityRealm() instanceof CodingSecurityRealm) {
             if(myRealm == null) {
-                myRealm = (GithubSecurityRealm) jenkins.getSecurityRealm();
+                myRealm = (CodingSecurityRealm) jenkins.getSecurityRealm();
             }
             //Search for scopes that allow fetching team membership.  This is documented online.
             //https://developer.github.com/v3/orgs/#list-your-organizations
@@ -236,7 +235,7 @@ public class GithubAuthenticationToken extends AbstractAuthenticationToken {
                         LOGGER.log(Level.FINE, "Fetch teams for user " + userName + " in organization " + orgLogin);
                         authorities.add(new GrantedAuthorityImpl(orgLogin));
                         for (GHTeam team : teamEntry.getValue()) {
-                            authorities.add(new GrantedAuthorityImpl(orgLogin + GithubOAuthGroupDetails.ORG_TEAM_SEPARATOR
+                            authorities.add(new GrantedAuthorityImpl(orgLogin + CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR
                                     + team.getName()));
                         }
                     }
@@ -442,7 +441,7 @@ public class GithubAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     private static final Logger LOGGER = Logger
-            .getLogger(GithubAuthenticationToken.class.getName());
+            .getLogger(CodingAuthenticationToken.class.getName());
 
     public GHUser loadUser(String username) throws IOException {
         GithubUser user;
@@ -522,10 +521,10 @@ public class GithubAuthenticationToken extends AbstractAuthenticationToken {
         return null;
     }
 
-    public GithubOAuthUserDetails getUserDetails(String username) throws IOException {
+    public CodingOAuthUserDetails getUserDetails(String username) throws IOException {
         GHUser user = loadUser(username);
         if (user != null) {
-            return new GithubOAuthUserDetails(user.getLogin(), this);
+            return new CodingOAuthUserDetails(user.getLogin(), this);
         }
         return null;
     }

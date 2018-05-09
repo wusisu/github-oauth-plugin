@@ -49,7 +49,7 @@
 
 # Version 0.26 (Released Apr 21, 2017)
 
-- Bugfix Fix for NPE in `GithubOAuthUserDetails.getAuthorities()`. (pull request
+- Bugfix Fix for NPE in `CodingOAuthUserDetails.getAuthorities()`. (pull request
   [#76][#76])
 - Bugfix [JENKINS-27045][JENKINS-27045] Jenkins CLI --username/--password
   options. (pull request [#77][#77])

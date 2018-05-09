@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 package org.jenkinsci.plugins;
 
-import org.jenkinsci.plugins.GithubSecurityRealm.DescriptorImpl;
+import org.jenkinsci.plugins.CodingSecurityRealm.DescriptorImpl;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -33,29 +33,29 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
-public class GithubSecurityRealmTest {
+public class CodingSecurityRealmTest {
 
     @ClassRule
     public final static JenkinsRule rule = new JenkinsRule();
 
     @Test
     public void testEquals_true() {
-        GithubSecurityRealm a = new GithubSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
-        GithubSecurityRealm b = new GithubSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
+        CodingSecurityRealm b = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
         assertTrue(a.equals(b));
     }
 
     @Test
     public void testEquals_false() {
-        GithubSecurityRealm a = new GithubSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
-        GithubSecurityRealm b = new GithubSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,repo");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
+        CodingSecurityRealm b = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,repo");
         assertFalse(a.equals(b));
         assertFalse(a.equals(""));
     }
 
     @Test
     public void testHasScope_true() {
-        GithubSecurityRealm a = new GithubSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,user,user:email");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,user,user:email");
         assertTrue(a.hasScope("user"));
         assertTrue(a.hasScope("read:org"));
         assertTrue(a.hasScope("user:email"));
@@ -63,7 +63,7 @@ public class GithubSecurityRealmTest {
 
     @Test
     public void testHasScope_false() {
-        GithubSecurityRealm a = new GithubSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,user,user:email");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,user,user:email");
         assertFalse(a.hasScope("somescope"));
     }
 

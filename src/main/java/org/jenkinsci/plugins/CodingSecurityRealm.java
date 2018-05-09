@@ -102,7 +102,7 @@ import javax.annotation.Nullable;
  * This is based on the MySQLSecurityRealm from the mysql-auth-plugin written by
  * Alex Ackerman.
  */
-public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm implements UserDetailsService {
+public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm implements UserDetailsService {
     private static final String DEFAULT_WEB_URI = "https://github.com";
     private static final String DEFAULT_API_URI = "https://api.github.com";
     private static final String DEFAULT_ENTERPRISE_API_SUFFIX = "/api/v3";
@@ -125,11 +125,11 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
      * @param oauthScopes A comma separated list of OAuth Scopes to request access to.
      */
     @DataBoundConstructor
-    public GithubSecurityRealm(String githubWebUri,
-            String githubApiUri,
-            String clientID,
-            String clientSecret,
-            String oauthScopes) {
+    public CodingSecurityRealm(String githubWebUri,
+                               String githubApiUri,
+                               String clientID,
+                               String clientSecret,
+                               String oauthScopes) {
         super();
 
         this.githubWebUri = Util.fixEmptyAndTrim(githubWebUri);
@@ -139,7 +139,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         this.oauthScopes  = Util.fixEmptyAndTrim(oauthScopes);
     }
 
-    private GithubSecurityRealm() {    }
+    private CodingSecurityRealm() {    }
 
     /**
      * Tries to automatically determine the GitHub API URI based on
@@ -217,12 +217,12 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     public static final class ConverterImpl implements Converter {
 
         public boolean canConvert(Class type) {
-            return type == GithubSecurityRealm.class;
+            return type == CodingSecurityRealm.class;
         }
 
         public void marshal(Object source, HierarchicalStreamWriter writer,
                 MarshallingContext context) {
-            GithubSecurityRealm realm = (GithubSecurityRealm) source;
+            CodingSecurityRealm realm = (CodingSecurityRealm) source;
 
             writer.startNode("githubWebUri");
             writer.setValue(realm.getGithubWebUri());
@@ -249,7 +249,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         public Object unmarshal(HierarchicalStreamReader reader,
                 UnmarshallingContext context) {
 
-            GithubSecurityRealm realm = new GithubSecurityRealm();
+            CodingSecurityRealm realm = new CodingSecurityRealm();
 
             String node;
             String value;
@@ -273,8 +273,8 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
             return realm;
         }
 
-        private void setValue(GithubSecurityRealm realm, String node,
-                String value) {
+        private void setValue(CodingSecurityRealm realm, String node,
+                              String value) {
             if (node.toLowerCase().equals("clientid")) {
                 realm.setClientID(value);
             } else if (node.toLowerCase().equals("clientsecret")) {
@@ -304,7 +304,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     }
 
     /**
-     * @deprecated use {@link org.jenkinsci.plugins.GithubSecurityRealm#getGithubWebUri()} instead.
+     * @deprecated use {@link CodingSecurityRealm#getGithubWebUri()} instead.
      * @return the uri to the web root of Github (varies for Github Enterprise Edition)
      */
     @Deprecated
@@ -338,7 +338,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         request.getSession().setAttribute(REFERER_ATTRIBUTE,referer);
 
         Set<String> scopes = new HashSet<>();
-        for (GitHubOAuthScope s : getJenkins().getExtensionList(GitHubOAuthScope.class)) {
+        for (CodingOAuthScope s : getJenkins().getExtensionList(CodingOAuthScope.class)) {
             scopes.addAll(s.getScopesToRequest());
         }
         String suffix="";
@@ -371,7 +371,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
 
         if (accessToken != null && accessToken.trim().length() > 0) {
             // only set the access token if it exists.
-            GithubAuthenticationToken auth = new GithubAuthenticationToken(accessToken, getGithubApiUri());
+            CodingAuthenticationToken auth = new CodingAuthenticationToken(accessToken, getGithubApiUri());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             GHMyself self = auth.getMyself();
@@ -380,7 +380,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                 throw new IllegalStateException("Can't find user");
             }
 
-            GithubSecretStorage.put(u, accessToken);
+            CodingSecretStorage.put(u, accessToken);
 
             u.setFullName(self.getName());
             // Set email from github only if empty
@@ -400,7 +400,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                 }
             }
 
-            SecurityListener.fireAuthenticated(new GithubOAuthUserDetails(self.getLogin(), auth.getAuthorities()));
+            SecurityListener.fireAuthenticated(new CodingOAuthUserDetails(self.getLogin(), auth.getAuthorities()));
 
             // While LastGrantedAuthorities are triggered by that event, we cannot trigger it there
             // or modifications in organizations will be not reflected when using API Token, due to that caching
@@ -477,20 +477,20 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
 
             public Authentication authenticate(Authentication authentication)
                     throws AuthenticationException {
-                if (authentication instanceof GithubAuthenticationToken)
+                if (authentication instanceof CodingAuthenticationToken)
                     return authentication;
                 if (authentication instanceof UsernamePasswordAuthenticationToken)
                     try {
                         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
-                        GithubAuthenticationToken github = new GithubAuthenticationToken(token.getCredentials().toString(), getGithubApiUri());
+                        CodingAuthenticationToken github = new CodingAuthenticationToken(token.getCredentials().toString(), getGithubApiUri());
                         SecurityContextHolder.getContext().setAuthentication(github);
 
                         User user = User.getById(token.getName(), false);
                         if(user != null){
-                            GithubSecretStorage.put(user, token.getCredentials().toString());
+                            CodingSecretStorage.put(user, token.getCredentials().toString());
                         }
 
-                        SecurityListener.fireAuthenticated(new GithubOAuthUserDetails(token.getName(), github.getAuthorities()));
+                        SecurityListener.fireAuthenticated(new CodingOAuthUserDetails(token.getName(), github.getAuthorities()));
 
                         return github;
                     } catch (IOException e) {
@@ -502,15 +502,15 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         }, new UserDetailsService() {
             public UserDetails loadUserByUsername(String username)
                     throws UsernameNotFoundException, DataAccessException {
-                return GithubSecurityRealm.this.loadUserByUsername(username);
+                return CodingSecurityRealm.this.loadUserByUsername(username);
             }
         });
     }
 
     @Override
-    protected GithubOAuthUserDetails authenticate(String username, String password) throws AuthenticationException {
+    protected CodingOAuthUserDetails authenticate(String username, String password) throws AuthenticationException {
         try {
-            GithubAuthenticationToken github = new GithubAuthenticationToken(password, getGithubApiUri());
+            CodingAuthenticationToken github = new CodingAuthenticationToken(password, getGithubApiUri());
             if(username.equals(github.getPrincipal())) {
                 SecurityContextHolder.getContext().setAuthentication(github);
                 return github.getUserDetails(username);
@@ -552,8 +552,8 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                 if(password == null) {
                     throw new BadCredentialsException("No GitHub personal access token specified.");
                 }
-                GithubSecurityRealm.this.authenticate(userName, password);
-                return new GithubAuthenticationToken(password, getGithubApiUri());
+                CodingSecurityRealm.this.authenticate(userName, password);
+                return new CodingAuthenticationToken(password, getGithubApiUri());
             }
         };
     }
@@ -572,7 +572,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         if (j.hasPermission(Jenkins.READ)) {
             return super.getPostLogOutUrl(req, auth);
         }
-        return req.getContextPath()+ "/" + GithubLogoutAction.POST_LOGOUT_URL;
+        return req.getContextPath()+ "/" + CodingLogoutAction.POST_LOGOUT_URL;
     }
 
     @Extension
@@ -632,7 +632,7 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException, DataAccessException {
         //username is in org*team format
-        if(username.indexOf(GithubOAuthGroupDetails.ORG_TEAM_SEPARATOR) >= 0 ) {
+        if(username.indexOf(CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR) >= 0 ) {
             throw new UsernameNotFoundException("Using org*team format instead of username: " + username);
         }
 
@@ -641,10 +641,10 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         Authentication token = SecurityContextHolder.getContext().getAuthentication();
 
         if (token == null) {
-            if(localUser != null && GithubSecretStorage.contains(localUser)){
-                String accessToken = GithubSecretStorage.retrieve(localUser);
+            if(localUser != null && CodingSecretStorage.contains(localUser)){
+                String accessToken = CodingSecretStorage.retrieve(localUser);
                 try {
-                    token = new GithubAuthenticationToken(accessToken, getGithubApiUri());
+                    token = new CodingAuthenticationToken(accessToken, getGithubApiUri());
                 } catch (IOException e) {
                     throw new UserMayOrMayNotExistException("Could not connect to GitHub API server, target URL = " + getGithubApiUri(), e);
                 }
@@ -654,10 +654,10 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
             }
         }
 
-        GithubAuthenticationToken authToken;
+        CodingAuthenticationToken authToken;
 
-        if (token instanceof GithubAuthenticationToken) {
-            authToken = (GithubAuthenticationToken) token;
+        if (token instanceof CodingAuthenticationToken) {
+            authToken = (CodingAuthenticationToken) token;
         } else {
             throw new UserMayOrMayNotExistException("Unexpected authentication type: " + token);
         }
@@ -667,11 +667,11 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
          * Taken from hudson.security.HudsonPrivateSecurityRealm#loadUserByUsername(java.lang.String)
          */
         if (localUser != null) {
-            return new GithubOAuthUserDetails(username, authToken);
+            return new CodingOAuthUserDetails(username, authToken);
         }
 
         try {
-            GithubOAuthUserDetails userDetails = authToken.getUserDetails(username);
+            CodingOAuthUserDetails userDetails = authToken.getUserDetails(username);
             if (userDetails == null)
                 throw new UsernameNotFoundException("Unknown user: " + username);
 
@@ -694,8 +694,8 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
      */
     @Override
     public boolean equals(Object object){
-        if(object instanceof GithubSecurityRealm) {
-            GithubSecurityRealm obj = (GithubSecurityRealm) object;
+        if(object instanceof CodingSecurityRealm) {
+            CodingSecurityRealm obj = (CodingSecurityRealm) object;
             return this.getGithubWebUri().equals(obj.getGithubWebUri()) &&
                 this.getGithubApiUri().equals(obj.getGithubApiUri()) &&
                 this.getClientID().equals(obj.getClientID()) &&
@@ -727,13 +727,13 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     @Override
     public GroupDetails loadGroupByGroupname(String groupName)
             throws UsernameNotFoundException, DataAccessException {
-        GithubAuthenticationToken authToken =  (GithubAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        CodingAuthenticationToken authToken =  (CodingAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 
         if(authToken == null)
             throw new UsernameNotFoundException("No known group: " + groupName);
 
         try {
-            int idx = groupName.indexOf(GithubOAuthGroupDetails.ORG_TEAM_SEPARATOR);
+            int idx = groupName.indexOf(CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR);
             if (idx > -1 && groupName.length() > idx + 1) { // groupName = "GHOrganization*GHTeam"
                 String orgName = groupName.substring(0, idx);
                 String teamName = groupName.substring(idx + 1);
@@ -743,13 +743,13 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                     throw new UsernameNotFoundException("Unknown GitHub team: " + teamName + " in organization "
                             + orgName);
                 }
-                return new GithubOAuthGroupDetails(ghTeam);
+                return new CodingOAuthGroupDetails(ghTeam);
             } else { // groupName = "GHOrganization"
                 GHOrganization ghOrg = authToken.loadOrganization(groupName);
                 if (ghOrg == null) {
                     throw new UsernameNotFoundException("Unknown GitHub organization: " + groupName);
                 }
-                return new GithubOAuthGroupDetails(ghOrg);
+                return new CodingOAuthGroupDetails(ghOrg);
             }
         } catch (Error e) {
             throw new DataRetrievalFailureException("loadGroupByGroupname (groupname=" + groupName + ")", e);
@@ -767,9 +767,9 @@ public class GithubSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     /**
      * Logger for debugging purposes.
      */
-    private static final Logger LOGGER = Logger.getLogger(GithubSecurityRealm.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CodingSecurityRealm.class.getName());
 
-    private static final String REFERER_ATTRIBUTE = GithubSecurityRealm.class.getName()+".referer";
+    private static final String REFERER_ATTRIBUTE = CodingSecurityRealm.class.getName()+".referer";
 
     /**
      * Asks for the password.

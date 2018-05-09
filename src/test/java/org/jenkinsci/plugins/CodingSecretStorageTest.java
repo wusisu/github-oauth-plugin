@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.runners.model.Statement;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
 
-public class GithubSecretStorageTest {
+public class CodingSecretStorageTest {
 
     @Rule
     public RestartableJenkinsRule j = new RestartableJenkinsRule();
@@ -44,17 +44,17 @@ public class GithubSecretStorageTest {
 
                 String secret = "$3cR3t";
 
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveUser()));
-                Assert.assertNull(GithubSecretStorage.retrieve(retrieveUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveUser()));
+                Assert.assertNull(CodingSecretStorage.retrieve(retrieveUser()));
 
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveOtherUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveOtherUser()));
 
-                GithubSecretStorage.put(retrieveUser(), secret);
+                CodingSecretStorage.put(retrieveUser(), secret);
 
-                Assert.assertTrue(GithubSecretStorage.contains(retrieveUser()));
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveOtherUser()));
+                Assert.assertTrue(CodingSecretStorage.contains(retrieveUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveOtherUser()));
 
-                Assert.assertEquals(secret, GithubSecretStorage.retrieve(retrieveUser()));
+                Assert.assertEquals(secret, CodingSecretStorage.retrieve(retrieveUser()));
             }
         });
     }
@@ -76,25 +76,25 @@ public class GithubSecretStorageTest {
                 User.getById("alice", true).save();
                 User.getById("bob", true).save();
 
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveUser()));
-                Assert.assertNull(GithubSecretStorage.retrieve(retrieveUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveUser()));
+                Assert.assertNull(CodingSecretStorage.retrieve(retrieveUser()));
 
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveOtherUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveOtherUser()));
 
-                GithubSecretStorage.put(retrieveUser(), secret);
+                CodingSecretStorage.put(retrieveUser(), secret);
 
-                Assert.assertTrue(GithubSecretStorage.contains(retrieveUser()));
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveOtherUser()));
+                Assert.assertTrue(CodingSecretStorage.contains(retrieveUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveOtherUser()));
 
-                Assert.assertEquals(secret, GithubSecretStorage.retrieve(retrieveUser()));
+                Assert.assertEquals(secret, CodingSecretStorage.retrieve(retrieveUser()));
             }
         });
         j.addStep(new Statement() {
             @Override public void evaluate() throws Throwable {
-                Assert.assertTrue(GithubSecretStorage.contains(retrieveUser()));
-                Assert.assertFalse(GithubSecretStorage.contains(retrieveOtherUser()));
+                Assert.assertTrue(CodingSecretStorage.contains(retrieveUser()));
+                Assert.assertFalse(CodingSecretStorage.contains(retrieveOtherUser()));
 
-                Assert.assertEquals(secret, GithubSecretStorage.retrieve(retrieveUser()));
+                Assert.assertEquals(secret, CodingSecretStorage.retrieve(retrieveUser()));
             }
         });
     }

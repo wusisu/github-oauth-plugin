@@ -24,22 +24,20 @@ THE SOFTWARE.
 
 package org.jenkinsci.plugins;
 
-import java.io.IOException;
 import junit.framework.TestCase;
-import org.junit.runner.RunWith;
 import org.junit.Test;
 
-public class GithubAuthorizationStrategyTest extends TestCase {
+public class CodingAuthorizationStrategyTest extends TestCase {
     @Test
     public void testEquals_true() {
-        GithubAuthorizationStrategy a = new GithubAuthorizationStrategy(new String(""), false, true, false, new String(""), false, false, false, false);
-        GithubAuthorizationStrategy b = new GithubAuthorizationStrategy(new String(""), false, true, false, new String(""), false, false, false, false);
+        CodingAuthorizationStrategy a = new CodingAuthorizationStrategy(new String(""), false, true, false, new String(""), false, false, false, false);
+        CodingAuthorizationStrategy b = new CodingAuthorizationStrategy(new String(""), false, true, false, new String(""), false, false, false, false);
         assertTrue(a.equals(b));
     }
     @Test
     public void testEquals_false() {
-        GithubAuthorizationStrategy a = new GithubAuthorizationStrategy(new String(""), false, true, false, new String(""), false, false, false, false);
-        GithubAuthorizationStrategy b = new GithubAuthorizationStrategy(new String(""), false, false, false, new String(""), false, false, false, false);
+        CodingAuthorizationStrategy a = new CodingAuthorizationStrategy(new String(""), false, true, false, new String(""), false, false, false, false);
+        CodingAuthorizationStrategy b = new CodingAuthorizationStrategy(new String(""), false, false, false, new String(""), false, false, false, false);
         assertFalse(a.equals(b));
         assertFalse(a.equals(""));
     }

@@ -17,21 +17,21 @@ import java.io.IOException;
  *
  */
 @SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
-public class GithubOAuthUserDetails extends User implements UserDetails {
+public class CodingOAuthUserDetails extends User implements UserDetails {
 
     private static final long serialVersionUID = 1L;
 
     private boolean hasGrantedAuthorities;
 
-    private final GithubAuthenticationToken authenticationToken;
+    private final CodingAuthenticationToken authenticationToken;
 
-    public GithubOAuthUserDetails(@Nonnull String login, @Nonnull GrantedAuthority[] authorities) {
+    public CodingOAuthUserDetails(@Nonnull String login, @Nonnull GrantedAuthority[] authorities) {
         super(login, "", true, true, true, true, authorities);
         this.authenticationToken = null;
         this.hasGrantedAuthorities = true;
     }
 
-    public GithubOAuthUserDetails(@Nonnull String login, @Nonnull GithubAuthenticationToken authenticationToken) {
+    public CodingOAuthUserDetails(@Nonnull String login, @Nonnull CodingAuthenticationToken authenticationToken) {
         super(login, "", true, true, true, true, new GrantedAuthority[0]);
         this.authenticationToken = authenticationToken;
         this.hasGrantedAuthorities = false;

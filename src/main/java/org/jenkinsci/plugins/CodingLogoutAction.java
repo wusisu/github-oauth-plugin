@@ -36,7 +36,7 @@ import jenkins.model.Jenkins;
  * This prevents a logout -> login loop when using this security realm and Anonymous does not have {@code Overall.READ} permission.
  */
 @Extension
-public class GithubLogoutAction implements UnprotectedRootAction {
+public class CodingLogoutAction implements UnprotectedRootAction {
 
     /** The URL of the action. */
     static final String POST_LOGOUT_URL = "githubLogout";
@@ -62,11 +62,11 @@ public class GithubLogoutAction implements UnprotectedRootAction {
         Jenkins j = Jenkins.getInstance();
         assert j != null;
         SecurityRealm r = j.getSecurityRealm();
-        if (r instanceof GithubSecurityRealm) {
-            GithubSecurityRealm ghsr = (GithubSecurityRealm) r;
+        if (r instanceof CodingSecurityRealm) {
+            CodingSecurityRealm ghsr = (CodingSecurityRealm) r;
             return ghsr.getGithubWebUri();
         }
-        // only called from the Jelly if the GithubSecurityRealm is set...
+        // only called from the Jelly if the CodingSecurityRealm is set...
         return "";
     }
 
@@ -75,11 +75,11 @@ public class GithubLogoutAction implements UnprotectedRootAction {
         Jenkins j = Jenkins.getInstance();
         assert j != null;
         SecurityRealm r = j.getSecurityRealm();
-        if (r instanceof GithubSecurityRealm) {
-            GithubSecurityRealm ghsr = (GithubSecurityRealm) r;
+        if (r instanceof CodingSecurityRealm) {
+            CodingSecurityRealm ghsr = (CodingSecurityRealm) r;
             return (ghsr.getDescriptor().getDefaultGithubWebUri().equals(ghsr.getGithubWebUri()))? "GitHub" : "GitHub Enterprise";
         }
-        // only called from the Jelly if the GithubSecurityRealm is set...
+        // only called from the Jelly if the CodingSecurityRealm is set...
         return "";
     }
 }
