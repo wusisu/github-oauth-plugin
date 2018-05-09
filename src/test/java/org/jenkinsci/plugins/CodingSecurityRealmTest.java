@@ -70,13 +70,13 @@ public class CodingSecurityRealmTest {
     @Test
     public void testDescriptorImplGetDefaultGithubWebUri() {
         DescriptorImpl descriptor = new DescriptorImpl();
-        assertTrue("https://github.com".equals(descriptor.getDefaultGithubWebUri()));
+        assertTrue("https://coding.net".equals(descriptor.getDefaultGithubWebUri()));
     }
 
     @Test
     public void testDescriptorImplGetDefaultGithubApiUri() {
         DescriptorImpl descriptor = new DescriptorImpl();
-        assertTrue("https://api.github.com".equals(descriptor.getDefaultGithubApiUri()));
+        assertTrue("https://coding.net".equals(descriptor.getDefaultGithubApiUri()));
     }
 
     @Test

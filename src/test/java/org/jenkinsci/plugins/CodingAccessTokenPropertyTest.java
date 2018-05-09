@@ -157,10 +157,10 @@ public class CodingAccessTokenPropertyTest {
                 case "/teams/7/members/bob":
                     this.onTeamMember(req, resp, "team-d", "bob");
                     break;
-                case "/login/oauth/authorize":
+                case "/oauth_authorize.html":
                     this.onLoginOAuthAuthorize(req, resp);
                     break;
-                case "/login/oauth/access_token":
+                case "/api/oauth/access_token":
                     this.onLoginOAuthAccessToken(req, resp);
                     break;
                 default:

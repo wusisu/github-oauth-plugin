@@ -62,11 +62,14 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jfree.util.Log;
 import org.kohsuke.args4j.Option;
@@ -87,6 +90,7 @@ import java.io.Console;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -103,10 +107,10 @@ import javax.annotation.Nullable;
  * Alex Ackerman.
  */
 public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm implements UserDetailsService {
-    private static final String DEFAULT_WEB_URI = "https://github.com";
-    private static final String DEFAULT_API_URI = "https://api.github.com";
-    private static final String DEFAULT_ENTERPRISE_API_SUFFIX = "/api/v3";
-    private static final String DEFAULT_OAUTH_SCOPES = "read:org,user:email,repo";
+    private static final String DEFAULT_WEB_URI = "https://coding.net";
+    private static final String DEFAULT_API_URI = "https://coding.net";
+    private static final String DEFAULT_ENTERPRISE_API_SUFFIX = "/api";
+    private static final String DEFAULT_OAUTH_SCOPES = "user,user:email,team";
 
     private String githubWebUri;
     private String githubApiUri;
@@ -132,8 +136,8 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                                String oauthScopes) {
         super();
 
-        this.githubWebUri = Util.fixEmptyAndTrim(githubWebUri);
-        this.githubApiUri = Util.fixEmptyAndTrim(githubApiUri);
+        this.githubWebUri = CodingUtil.fixEndwithSlash(Util.fixEmptyAndTrim(githubWebUri));
+        this.githubApiUri = CodingUtil.fixEndwithSlash(Util.fixEmptyAndTrim(githubApiUri));
         this.clientID     = Util.fixEmptyAndTrim(clientID);
         setClientSecret(Util.fixEmptyAndTrim(clientSecret));
         this.oauthScopes  = Util.fixEmptyAndTrim(oauthScopes);
@@ -341,16 +345,22 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         for (CodingOAuthScope s : getJenkins().getExtensionList(CodingOAuthScope.class)) {
             scopes.addAll(s.getScopesToRequest());
         }
-        String suffix="";
+        String suffix="&response_type=code";
+
+        // TODO: can be removed when fix https://codingcorp.coding.net/p/coding-dev/task/85488
+        String redirectUri = getJenkins().getRootUrl() + "/securityRealm/finishLogin";
+        suffix += "&redirect_uri=" + redirectUri;
+
         if (!scopes.isEmpty()) {
-            suffix = "&scope="+Util.join(scopes,",");
+            suffix += "&scope="+Util.join(scopes,",");
         } else {
             // We need repo scope in order to access private repos
             // See https://developer.github.com/v3/oauth/#scopes
-            suffix = "&scope=" + oauthScopes;
+            suffix += "&scope=" + oauthScopes;
         }
 
-        return new HttpRedirect(githubWebUri + "/login/oauth/authorize?client_id="
+        //redirect_uri=https%3A%2F%2Fcoding.coding.me%2FComments%2F
+        return new HttpRedirect(githubWebUri + "/oauth_authorize.html?client_id="
                 + clientID + suffix);
     }
 
@@ -418,9 +428,13 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     private String getAccessToken(@Nonnull String code) throws IOException {
         String content;
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpPost httpost = new HttpPost(githubWebUri
-                    + "/login/oauth/access_token?" + "client_id=" + clientID + "&"
-                    + "client_secret=" + clientSecret + "&" + "code=" + code);
+            // https://coding.net/api
+            HttpPost httpost = new HttpPost(githubWebUri + "/api/oauth/access_token?");
+            ArrayList<NameValuePair> entityList = new ArrayList<>(3);
+            entityList.add(new BasicNameValuePair("client_id", clientID));
+            entityList.add(new BasicNameValuePair("client_secret", clientSecret.getPlainText()));
+            entityList.add(new BasicNameValuePair("code", code));
+            httpost.setEntity(new UrlEncodedFormEntity(entityList));
             HttpHost proxy = getProxy(httpost);
             if (proxy != null) {
                 RequestConfig requestConfig = RequestConfig.custom().setProxy(proxy).build();

@@ -49,7 +49,7 @@ import jenkins.branch.MultiBranchProject;
 /**
  * @author mocleiri
  *
- *
+ * // TODO: 可以先注释掉这个 class，开放所有权限
  *
  */
 public class CodingAuthorizationStrategy extends AuthorizationStrategy {
