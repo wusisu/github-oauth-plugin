@@ -64,7 +64,7 @@ public class Coding {
         if ("https://coding.net".equals(apiUrl)) {
             return Collections.singletonMap("coding_dot_net", null);
         }
-        return Collections.emptyMap();
+        return Collections.singletonMap("coding_dot_net", null);
 //        CodingOrganization[] orgs = retrieve().to("/user/orgs", CodingOrganization[].class);
 //        Map<String, CodingOrganization> r = new HashMap<String, CodingOrganization>();
 //        for (CodingOrganization o : orgs) {
@@ -104,6 +104,19 @@ public class Coding {
             allMyTeams.put(orgLogin, teamsPerOrg);
         }
         return allMyTeams;
+    }
+
+    /**
+     * Obtains the object that represents the named user.
+     */
+    public CodingUser getUser(String login) throws IOException {
+        CodingUser u = users.get(login);
+        if (u == null) {
+            u = retrieve().to("/user/key/" + login, CodingUser.class);
+            u.root = this;
+            users.put(u.getLogin(), u);
+        }
+        return u;
     }
 
 

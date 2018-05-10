@@ -4,6 +4,7 @@
 package org.jenkinsci.plugins;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.coding.api.CodingUser;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.userdetails.User;
 import org.acegisecurity.userdetails.UserDetails;
@@ -41,7 +42,7 @@ public class CodingOAuthUserDetails extends User implements UserDetails {
     public GrantedAuthority[] getAuthorities() {
         if (!hasGrantedAuthorities) {
             try {
-                GHUser user = authenticationToken.loadUser(getUsername());
+                CodingUser user = authenticationToken.loadUser(getUsername());
                 if(user != null) {
                     setAuthorities(authenticationToken.getAuthorities());
                 }

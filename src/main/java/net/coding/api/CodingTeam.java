@@ -24,6 +24,7 @@ public class CodingTeam {
     /*package*/ CodingTeam wrapUp(Coding root) { // auto-wrapUp when organization is known from GET /user/teams
         if (this.organization == null) {
             this.organization = new CodingOrganization();
+            this.organization.global_key = "coding_dot_net";
         }
         this.organization.wrapUp(root);
         return wrapUp(organization);

@@ -298,16 +298,16 @@ public class CodingAccessTokenPropertyTest {
         makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated"));
 
         // request whoAmI with GitHubToken => group populated
-        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceGitHubToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "team-b"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceGitHubToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "coding_dot_net*team-b"));
 
         CodingAuthenticationToken.clearCaches();
 
         // no authentication in session but use the cache
-        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "team-b"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "coding_dot_net*team-b"));
 
         wc = j.createWebClient();
         // no session at all, use the cache also
-        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "team-b"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "coding_dot_net*team-b"));
     }
 
     @Issue("JENKINS-47113")
@@ -324,16 +324,16 @@ public class CodingAccessTokenPropertyTest {
         // request whoAmI with ApiRestToken => group not populated
         makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated"));
         // request whoAmI with GitHub OAuth => group populated
-        makeRequestUsingOAuth("bob", Arrays.asList("authenticated", "coding_dot_net", "team-d"));
+        makeRequestUsingOAuth("bob", Arrays.asList("authenticated", "coding_dot_net", "coding_dot_net*team-d"));
 
         // use only the session
         // request whoAmI with ApiRestToken => group populated (due to login event)
-        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "coding_dot_net", "team-d"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "coding_dot_net", "coding_dot_net*team-d"));
 
         CodingAuthenticationToken.clearCaches();
         wc = j.createWebClient();
         // retrieve the security group even without the cookie (using LastGrantedAuthorities this time)
-        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "coding_dot_net", "team-d"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "coding_dot_net", "coding_dot_net*team-d"));
     }
 
     private void makeRequestWithAuthCodeAndVerify(String authCode, String expectedLogin, List<String> expectedAuthorities) throws IOException, SAXException {
@@ -359,6 +359,7 @@ public class CodingAccessTokenPropertyTest {
 
     private void assertResponse(Page p, String expectedLogin, List<String> expectedAuthorities) {
         String response = p.getWebResponse().getContentAsString().trim();
+//        System.out.println(response);
         JSONObject respObject = JSONObject.fromObject(response);
         if (expectedLogin != null) {
             assertEquals(expectedLogin, respObject.getString("name"));

@@ -38,6 +38,7 @@ import net.coding.api.Coding;
 import net.coding.api.CodingBuilder;
 import net.coding.api.CodingMyself;
 import net.coding.api.CodingTeam;
+import net.coding.api.CodingUser;
 import net.coding.api.extras.OkHttpConnector;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
@@ -125,9 +126,9 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
 
     /** Wrappers for cache **/
     static class GithubUser {
-        public final GHUser user;
+        public final CodingUser user;
 
-        public GithubUser(GHUser user) {
+        public GithubUser(CodingUser user) {
             this.user = user;
         }
     }
@@ -443,17 +444,15 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
     private static final Logger LOGGER = Logger
             .getLogger(CodingAuthenticationToken.class.getName());
 
-    public GHUser loadUser(String username) throws IOException {
+    public CodingUser loadUser(String username) throws IOException {
         GithubUser user;
         try {
             user = usersByIdCache.getIfPresent(username);
             if (coding != null && user == null && isAuthenticated()) {
-                throw new UnsupportedOperationException("");
-//                GHUser ghUser = getGitHub().getUser(username);
-//                user = new GithubUser(ghUser);
-//                usersByIdCache.put(username, user);
+                CodingUser ghUser = getGitHub().getUser(username);
+                user = new GithubUser(ghUser);
+                usersByIdCache.put(username, user);
             }
-            throw new IOException();
         } catch (IOException e) {
             LOGGER.log(Level.FINEST, e.getMessage(), e);
             user = UNKNOWN_USER;
@@ -527,7 +526,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public CodingOAuthUserDetails getUserDetails(String username) throws IOException {
-        GHUser user = loadUser(username);
+        CodingUser user = loadUser(username);
         if (user != null) {
             return new CodingOAuthUserDetails(user.getLogin(), this);
         }
