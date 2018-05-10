@@ -1,16 +1,15 @@
 package org.jenkinsci.plugins;
 
 import jenkins.model.Jenkins;
+import net.coding.api.Coding;
+import net.coding.api.CodingBuilder;
+import net.coding.api.CodingMyself;
+import net.coding.api.extras.OkHttpConnector;
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kohsuke.github.GHMyself;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
-import org.kohsuke.github.RateLimitHandler;
-import org.kohsuke.github.extras.OkHttpConnector;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -22,7 +21,7 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({GitHub.class, GitHubBuilder.class, Jenkins.class, CodingSecurityRealm.class})
+@PrepareForTest({Coding.class, CodingBuilder.class, Jenkins.class, CodingSecurityRealm.class})
 public class CodingAuthenticationTokenTest {
 
     @Mock
@@ -36,13 +35,13 @@ public class CodingAuthenticationTokenTest {
         PowerMockito.mockStatic(Jenkins.class);
         PowerMockito.when(Jenkins.getInstance()).thenReturn(jenkins);
         PowerMockito.when(jenkins.getSecurityRealm()).thenReturn(securityRealm);
-        PowerMockito.when(securityRealm.getOauthScopes()).thenReturn("read:org");
+        PowerMockito.when(securityRealm.getOauthScopes()).thenReturn("user,user:email,team");
     }
 
     @Test
     public void testTokenSerialization() throws IOException {
-        mockGHMyselfAs("bob");
-        CodingAuthenticationToken authenticationToken = new CodingAuthenticationToken("accessToken", "https://api.github.com");
+        mockCodingMyselfAs("bob");
+        CodingAuthenticationToken authenticationToken = new CodingAuthenticationToken("accessToken", "https://coding.net");
         byte[] serializedToken = SerializationUtils.serialize(authenticationToken);
         CodingAuthenticationToken deserializedToken = (CodingAuthenticationToken) SerializationUtils.deserialize(serializedToken);
         assertEquals(deserializedToken.getAccessToken(), authenticationToken.getAccessToken());
@@ -56,18 +55,18 @@ public class CodingAuthenticationTokenTest {
         CodingAuthenticationToken.clearCaches();
     }
 
-    private GHMyself mockGHMyselfAs(String username) throws IOException {
-        GitHub gh = PowerMockito.mock(GitHub.class);
-        GitHubBuilder builder = PowerMockito.mock(GitHubBuilder.class);
-        PowerMockito.mockStatic(GitHub.class);
-        PowerMockito.mockStatic(GitHubBuilder.class);
-        PowerMockito.when(GitHubBuilder.fromEnvironment()).thenReturn(builder);
-        PowerMockito.when(builder.withEndpoint("https://api.github.com")).thenReturn(builder);
+    private CodingMyself mockCodingMyselfAs(String username) throws IOException {
+        Coding gh = PowerMockito.mock(Coding.class);
+        CodingBuilder builder = PowerMockito.mock(CodingBuilder.class);
+        PowerMockito.mockStatic(Coding.class);
+        PowerMockito.mockStatic(CodingBuilder.class);
+        PowerMockito.when(CodingBuilder.fromEnvironment()).thenReturn(builder);
+        PowerMockito.when(builder.withEndpoint("https://coding.net")).thenReturn(builder);
         PowerMockito.when(builder.withOAuthToken("accessToken")).thenReturn(builder);
-        PowerMockito.when(builder.withRateLimitHandler(RateLimitHandler.FAIL)).thenReturn(builder);
+//        PowerMockito.when(builder.withRateLimitHandler(RateLimitHandler.FAIL)).thenReturn(builder);
         PowerMockito.when(builder.withConnector(Mockito.any(OkHttpConnector.class))).thenReturn(builder);
         PowerMockito.when(builder.build()).thenReturn(gh);
-        GHMyself me = PowerMockito.mock(GHMyself.class);
+        CodingMyself me = PowerMockito.mock(CodingMyself.class);
         PowerMockito.when(gh.getMyself()).thenReturn(me);
         PowerMockito.when(me.getLogin()).thenReturn(username);
         return me;

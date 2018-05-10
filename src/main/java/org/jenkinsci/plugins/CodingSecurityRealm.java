@@ -50,6 +50,8 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import jenkins.security.MasterToSlaveCallable;
 import jenkins.security.SecurityListener;
+import net.coding.api.CodingEmail;
+import net.coding.api.CodingMyself;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
@@ -390,7 +392,7 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
             CodingAuthenticationToken auth = new CodingAuthenticationToken(accessToken, getGithubApiUri());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            GHMyself self = auth.getMyself();
+            CodingMyself self = auth.getMyself();
             User u = User.current();
             if (u == null) {
                 throw new IllegalStateException("Can't find user");
@@ -403,7 +405,7 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
             if (!u.getProperty(Mailer.UserProperty.class).hasExplicitlyConfiguredAddress()) {
                 if(hasScope("user") || hasScope("user:email")) {
                     String primary_email = null;
-                    for(GHEmail e : self.getEmails2()) {
+                    for(CodingEmail e : self.getEmails2()) {
                         if(e.isPrimary()) {
                             primary_email = e.getEmail();
                         }

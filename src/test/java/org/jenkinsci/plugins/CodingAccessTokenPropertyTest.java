@@ -37,6 +37,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
@@ -121,7 +122,7 @@ public class CodingAccessTokenPropertyTest {
 
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             switch (req.getRequestURI()) {
-                case "/user":
+                case "/current_user":
                     this.onUser(req, resp);
                     break;
                 case "/users/_specific_login_":
@@ -130,29 +131,23 @@ public class CodingAccessTokenPropertyTest {
                 case "/user/orgs":
                     this.onUserOrgs(req, resp);
                     break;
-                case "/user/teams":
+                case "/team/joined":
                     this.onUserTeams(req, resp);
                     break;
-                case "/orgs/org-a":
-                    this.onOrgs(req, resp, "org-a");
+                case "/orgs/coding_dot_net":
+                    this.onOrgs(req, resp, "coding_dot_net");
                     break;
-                case "/orgs/org-a/teams":
-                    this.onOrgsTeam(req, resp, "org-a");
+                case "/orgs/coding_dot_net/teams":
+                    this.onOrgsTeam(req, resp, "coding_dot_net");
                     break;
-                case "/orgs/org-a/members/alice":
-                    this.onOrgsMember(req, resp, "org-a", "alice");
+                case "/orgs/coding_dot_net/members/alice":
+                    this.onOrgsMember(req, resp, "coding_dot_net", "alice");
                     break;
                 case "/teams/7/members/alice":
                     this.onTeamMember(req, resp, "team-b", "alice");
                     break;
-                case "/orgs/org-c":
-                    this.onOrgs(req, resp, "org-c");
-                    break;
-                case "/orgs/org-c/teams":
-                    this.onOrgsTeam(req, resp, "org-c");
-                    break;
-                case "/orgs/org-c/members/bob":
-                    this.onOrgsMember(req, resp, "org-c", "bob");
+                case "/orgs/coding_dot_net/members/bob":
+                    this.onOrgsMember(req, resp, "coding_dot_net", "bob");
                     break;
                 case "/teams/7/members/bob":
                     this.onTeamMember(req, resp, "team-d", "bob");
@@ -171,7 +166,7 @@ public class CodingAccessTokenPropertyTest {
         private void onUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             resp.getWriter().write(JSONObject.fromObject(
                     new HashMap<String, Object>() {{
-                        put("login", currentLogin);
+                        put("global_key", currentLogin);
                         put("name", currentLogin + "_name");
                         // to avoid triggering a second call, due to CodingSecurityRealm:382
                         put("created_at", "2008-01-14T04:33:35Z");
@@ -232,11 +227,11 @@ public class CodingAccessTokenPropertyTest {
             for (String teamName : teams) {
                 final String teamName_ = teamName;
                 responseBody.add(new HashMap<String, Object>() {{
-                    put("login", teamName_ + "_login");
+                    put("global_key", teamName_ + "_login");
                     put("name", teamName_);
-                    put("organization", new HashMap<String, Object>() {{
-                        put("login", organizations.get(0));
-                    }});
+//                    put("organization", new HashMap<String, Object>() {{
+//                        put("login", organizations.get(0));
+//                    }});
                 }});
             }
 
@@ -292,7 +287,7 @@ public class CodingAccessTokenPropertyTest {
     public void testUsingGithubToken() throws IOException, SAXException {
         String aliceLogin = "alice";
         servlet.currentLogin = aliceLogin;
-        servlet.organizations = Arrays.asList("org-a");
+        servlet.organizations = Arrays.asList("http://coding.net");
         servlet.teams = Arrays.asList("team-b");
 
         User aliceUser = User.getById(aliceLogin, true);
@@ -303,16 +298,16 @@ public class CodingAccessTokenPropertyTest {
         makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated"));
 
         // request whoAmI with GitHubToken => group populated
-        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceGitHubToken), "alice", Arrays.asList("authenticated", "org-a", "org-a*team-b"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceGitHubToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "team-b"));
 
         CodingAuthenticationToken.clearCaches();
 
         // no authentication in session but use the cache
-        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "org-a", "org-a*team-b"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "team-b"));
 
         wc = j.createWebClient();
         // no session at all, use the cache also
-        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "org-a", "org-a*team-b"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(aliceLogin, aliceApiRestToken), "alice", Arrays.asList("authenticated", "coding_dot_net", "team-b"));
     }
 
     @Issue("JENKINS-47113")
@@ -320,7 +315,7 @@ public class CodingAccessTokenPropertyTest {
     public void testUsingGithubLogin() throws IOException, SAXException {
         String bobLogin = "bob";
         servlet.currentLogin = bobLogin;
-        servlet.organizations = Arrays.asList("org-c");
+        servlet.organizations = Arrays.asList("coding_dot_net");
         servlet.teams = Arrays.asList("team-d");
 
         User bobUser = User.getById(bobLogin, true);
@@ -329,16 +324,16 @@ public class CodingAccessTokenPropertyTest {
         // request whoAmI with ApiRestToken => group not populated
         makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated"));
         // request whoAmI with GitHub OAuth => group populated
-        makeRequestUsingOAuth("bob", Arrays.asList("authenticated", "org-c", "org-c*team-d"));
+        makeRequestUsingOAuth("bob", Arrays.asList("authenticated", "coding_dot_net", "team-d"));
 
         // use only the session
         // request whoAmI with ApiRestToken => group populated (due to login event)
-        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "org-c", "org-c*team-d"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "coding_dot_net", "team-d"));
 
         CodingAuthenticationToken.clearCaches();
         wc = j.createWebClient();
         // retrieve the security group even without the cookie (using LastGrantedAuthorities this time)
-        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "org-c", "org-c*team-d"));
+        makeRequestWithAuthCodeAndVerify(encodeBasic(bobLogin, bobApiRestToken), "bob", Arrays.asList("authenticated", "coding_dot_net", "team-d"));
     }
 
     private void makeRequestWithAuthCodeAndVerify(String authCode, String expectedLogin, List<String> expectedAuthorities) throws IOException, SAXException {
@@ -364,7 +359,6 @@ public class CodingAccessTokenPropertyTest {
 
     private void assertResponse(Page p, String expectedLogin, List<String> expectedAuthorities) {
         String response = p.getWebResponse().getContentAsString().trim();
-        System.out.println(response);
         JSONObject respObject = JSONObject.fromObject(response);
         if (expectedLogin != null) {
             assertEquals(expectedLogin, respObject.getString("name"));

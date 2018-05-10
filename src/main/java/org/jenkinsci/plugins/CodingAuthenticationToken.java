@@ -30,25 +30,25 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.OkUrlFactory;
-
+import hudson.model.Item;
 import hudson.security.Permission;
 import hudson.security.SecurityRealm;
-import hudson.model.Item;
 import jenkins.model.Jenkins;
+import net.coding.api.Coding;
+import net.coding.api.CodingBuilder;
+import net.coding.api.CodingMyself;
+import net.coding.api.CodingTeam;
+import net.coding.api.extras.OkHttpConnector;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.acegisecurity.providers.AbstractAuthenticationToken;
-import org.kohsuke.github.GHMyself;
+import org.eclipse.jgit.errors.NotSupportedException;
 import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHPersonSet;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHTeam;
 import org.kohsuke.github.GHUser;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.GitHubBuilder;
-import org.kohsuke.github.RateLimitHandler;
-import org.kohsuke.github.extras.OkHttpConnector;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -66,8 +66,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
-
 
 /**
  * @author mocleiri
@@ -83,8 +81,8 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
     private final String githubServer;
     private final String userName;
 
-    private transient GitHub gh;
-    private transient GHMyself me;
+    private transient Coding coding;
+    private transient CodingMyself me;
     private transient CodingSecurityRealm myRealm = null;
 
     public static final TimeUnit CACHE_EXPIRY = TimeUnit.HOURS;
@@ -103,7 +101,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
     private static final Cache<String, GithubMyself> usersByTokenCache =
             CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
 
-    private static final Cache<String, Map<String, Set<GHTeam>>> userTeamsCache =
+    private static final Cache<String, Map<String, Set<CodingTeam>>> userTeamsCache =
             CacheBuilder.newBuilder().expireAfterWrite(1, CACHE_EXPIRY).build();
 
     /**
@@ -135,9 +133,9 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     static class GithubMyself {
-        public final GHMyself me;
+        public final CodingMyself me;
 
-        public GithubMyself(GHMyself me) {
+        public GithubMyself(CodingMyself me) {
             this.me = me;
         }
     }
@@ -216,9 +214,9 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
                         }
                     });
 
-                    Map<String, Set<GHTeam>> myTeams = userTeamsCache.get(getName(), new Callable<Map<String, Set<GHTeam>>>() {
+                    Map<String, Set<CodingTeam>> myTeams = userTeamsCache.get(getName(), new Callable<Map<String, Set<CodingTeam>>>() {
                         @Override
-                        public Map<String, Set<GHTeam>> call() throws Exception {
+                        public Map<String, Set<CodingTeam>> call() throws Exception {
                             return getGitHub().getMyTeams();
                         }
                     });
@@ -226,15 +224,15 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
                     //fetch organization-only memberships (i.e.: groups without teams)
                     for(String orgLogin : myOrgs){
                         if(!myTeams.containsKey(orgLogin)){
-                            myTeams.put(orgLogin, Collections.<GHTeam>emptySet());
+                            myTeams.put(orgLogin, Collections.<CodingTeam>emptySet());
                         }
                     }
 
-                    for (Map.Entry<String, Set<GHTeam>> teamEntry : myTeams.entrySet()) {
+                    for (Map.Entry<String, Set<CodingTeam>> teamEntry : myTeams.entrySet()) {
                         String orgLogin = teamEntry.getKey();
                         LOGGER.log(Level.FINE, "Fetch teams for user " + userName + " in organization " + orgLogin);
                         authorities.add(new GrantedAuthorityImpl(orgLogin));
-                        for (GHTeam team : teamEntry.getValue()) {
+                        for (CodingTeam team : teamEntry.getValue()) {
                             authorities.add(new GrantedAuthorityImpl(orgLogin + CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR
                                     + team.getName()));
                         }
@@ -274,8 +272,8 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
         return githubServer;
     }
 
-    public GitHub getGitHub() throws IOException {
-        if (this.gh == null) {
+    public Coding getGitHub() throws IOException {
+        if (this.coding == null) {
 
             String host;
             try {
@@ -286,14 +284,14 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
 
             OkHttpClient client = new OkHttpClient().setProxy(getProxy(host));
 
-            this.gh = GitHubBuilder.fromEnvironment()
+            this.coding = CodingBuilder.fromEnvironment()
                     .withEndpoint(this.githubServer)
                     .withOAuthToken(this.accessToken)
-                    .withRateLimitHandler(RateLimitHandler.FAIL)
+//                    .withRateLimitHandler(RateLimitHandler.FAIL)
                     .withConnector(new OkHttpConnector(new OkUrlFactory(client)))
                     .build();
         }
-        return gh;
+        return coding;
     }
 
     /**
@@ -335,7 +333,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
      * Returns the GHMyself object from this instance.
      * @return myself
      */
-    public GHMyself getMyself() throws IOException {
+    public CodingMyself getMyself() throws IOException {
         if (me == null) {
             me = getGitHub().getMyself();
         }
@@ -361,7 +359,8 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
             Set<String> v = userOrganizationCache.get(candidateName,new Callable<Set<String>>() {
                 @Override
                 public Set<String> call() throws Exception {
-                    return getGitHub().getMyOrganizations().keySet();
+//                    return getGitHub().getMyOrganizations().keySet();
+                    throw new NotSupportedException("");
                 }
             });
 
@@ -406,15 +405,16 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
                 new Callable<Set<String>>() {
                     @Override
                     public Set<String> call() throws Exception {
-                        List<GHRepository> userRepositoryList = getMyself().listRepositories().asList();
-                        Set<String> repositoryNames = listToNames(userRepositoryList);
-                        GHPersonSet<GHOrganization> organizations = getMyself().getAllOrganizations();
-                        for (GHOrganization organization : organizations) {
-                            List<GHRepository> orgRepositoryList = organization.listRepositories().asList();
-                            Set<String> orgRepositoryNames = listToNames(orgRepositoryList);
-                            repositoryNames.addAll(orgRepositoryNames);
-                        }
-                        return repositoryNames;
+//                        List<GHRepository> userRepositoryList = getMyself().listRepositories().asList();
+//                        Set<String> repositoryNames = listToNames(userRepositoryList);
+//                        GHPersonSet<GHOrganization> organizations = getMyself().getAllOrganizations();
+//                        for (GHOrganization organization : organizations) {
+//                            List<GHRepository> orgRepositoryList = organization.listRepositories().asList();
+//                            Set<String> orgRepositoryNames = listToNames(orgRepositoryList);
+//                            repositoryNames.addAll(orgRepositoryNames);
+//                        }
+//                        return repositoryNames;
+                        throw new UnsupportedOperationException();
                     }
                 }
             );
@@ -447,11 +447,13 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
         GithubUser user;
         try {
             user = usersByIdCache.getIfPresent(username);
-            if (gh != null && user == null && isAuthenticated()) {
-                GHUser ghUser = getGitHub().getUser(username);
-                user = new GithubUser(ghUser);
-                usersByIdCache.put(username, user);
+            if (coding != null && user == null && isAuthenticated()) {
+                throw new UnsupportedOperationException("");
+//                GHUser ghUser = getGitHub().getUser(username);
+//                user = new GithubUser(ghUser);
+//                usersByIdCache.put(username, user);
             }
+            throw new IOException();
         } catch (IOException e) {
             LOGGER.log(Level.FINEST, e.getMessage(), e);
             user = UNKNOWN_USER;
@@ -460,12 +462,12 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
         return user != null ? user.user : null;
     }
 
-    public GHMyself loadMyself(String token) throws IOException {
+    public CodingMyself loadMyself(String token) throws IOException {
         GithubMyself me;
         try {
             me = usersByTokenCache.getIfPresent(token);
             if (me == null) {
-                GHMyself ghMyself = getGitHub().getMyself();
+                CodingMyself ghMyself = getGitHub().getMyself();
                 me = new GithubMyself(ghMyself);
                 usersByTokenCache.put(token, me);
             }
@@ -479,8 +481,10 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
 
     public GHOrganization loadOrganization(String organization) {
         try {
-            if (gh != null && isAuthenticated())
-                return getGitHub().getOrganization(organization);
+            if (coding != null && isAuthenticated())
+//                return getGitHub().getOrganization(organization);
+                throw new UnsupportedOperationException("");
+            throw new IOException();
         } catch (IOException | RuntimeException e) {
             LOGGER.log(Level.FINEST, e.getMessage(), e);
         }
@@ -489,13 +493,14 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
 
     public RepoRights loadRepository(final String repositoryName) {
       try {
-          if (gh != null && isAuthenticated() && (myRealm.hasScope("repo") || myRealm.hasScope("public_repo"))) {
+          if (coding != null && isAuthenticated() && (myRealm.hasScope("repo") || myRealm.hasScope("public_repo"))) {
               return repositoryCache.get(repositoryName,
                   new Callable<RepoRights>() {
                       @Override
                       public RepoRights call() throws Exception {
-                          GHRepository repo = getGitHub().getRepository(repositoryName);
-                          return new RepoRights(repo);
+                          throw new UnsupportedOperationException("");
+//                          GHRepository repo = getGitHub().getRepository(repositoryName);
+//                          return new RepoRights(repo);
                       }
                   }
               );
