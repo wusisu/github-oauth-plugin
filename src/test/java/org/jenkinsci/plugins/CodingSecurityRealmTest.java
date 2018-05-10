@@ -40,30 +40,30 @@ public class CodingSecurityRealmTest {
 
     @Test
     public void testEquals_true() {
-        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
-        CodingSecurityRealm b = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "team");
+        CodingSecurityRealm b = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "team");
         assertTrue(a.equals(b));
     }
 
     @Test
     public void testEquals_false() {
-        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org");
-        CodingSecurityRealm b = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,repo");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "team");
+        CodingSecurityRealm b = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "team,repo");
         assertFalse(a.equals(b));
         assertFalse(a.equals(""));
     }
 
     @Test
     public void testHasScope_true() {
-        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,user,user:email");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "team,user,user:email");
         assertTrue(a.hasScope("user"));
-        assertTrue(a.hasScope("read:org"));
+        assertTrue(a.hasScope("team")); //read:org
         assertTrue(a.hasScope("user:email"));
     }
 
     @Test
     public void testHasScope_false() {
-        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "read:org,user,user:email");
+        CodingSecurityRealm a = new CodingSecurityRealm("http://jenkins.acme.com", "http://jenkins.acme.com/api/v3", "someid", "somesecret", "team,user,user:email");
         assertFalse(a.hasScope("somescope"));
     }
 
@@ -82,6 +82,6 @@ public class CodingSecurityRealmTest {
     @Test
     public void testDescriptorImplGetDefaultOauthScopes() {
         DescriptorImpl descriptor = new DescriptorImpl();
-        assertTrue("read:org,user:email,repo".equals(descriptor.getDefaultOauthScopes()));
+        assertTrue("user,user:email,team".equals(descriptor.getDefaultOauthScopes()));
     }
 }

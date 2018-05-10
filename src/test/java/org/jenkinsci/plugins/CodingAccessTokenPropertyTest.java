@@ -249,7 +249,7 @@ public class CodingAccessTokenPropertyTest {
         }
 
         private void onLoginOAuthAccessToken(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            resp.getWriter().write("access_token=RANDOM_ACCESS_TOKEN");
+            resp.getWriter().write("{\"access_token\": \"RANDOM_ACCESS_TOKEN\"}");
         }
     }
 
@@ -364,6 +364,7 @@ public class CodingAccessTokenPropertyTest {
 
     private void assertResponse(Page p, String expectedLogin, List<String> expectedAuthorities) {
         String response = p.getWebResponse().getContentAsString().trim();
+        System.out.println(response);
         JSONObject respObject = JSONObject.fromObject(response);
         if (expectedLogin != null) {
             assertEquals(expectedLogin, respObject.getString("name"));

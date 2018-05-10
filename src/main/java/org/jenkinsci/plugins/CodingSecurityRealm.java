@@ -26,6 +26,7 @@ THE SOFTWARE.
  */
 package org.jenkinsci.plugins;
 
+import com.google.gson.Gson;
 import com.thoughtworks.xstream.converters.ConversionException;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
@@ -71,7 +72,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.jfree.util.Log;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHMyself;
@@ -93,7 +93,9 @@ import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -373,11 +375,15 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
         String code = request.getParameter("code");
 
         if (code == null || code.trim().length() == 0) {
-            Log.info("doFinishLogin: missing code.");
+            LOGGER.info("doFinishLogin: missing code.");
             return HttpResponses.redirectToContextRoot();
         }
 
+        LOGGER.finer("get code " + code);
+
         String accessToken = getAccessToken(code);
+
+        LOGGER.fine("get accessToken " + accessToken);
 
         if (accessToken != null && accessToken.trim().length() > 0) {
             // only set the access token if it exists.
@@ -412,11 +418,13 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
 
             SecurityListener.fireAuthenticated(new CodingOAuthUserDetails(self.getLogin(), auth.getAuthorities()));
 
+            LOGGER.finer("get user " + u);
+
             // While LastGrantedAuthorities are triggered by that event, we cannot trigger it there
             // or modifications in organizations will be not reflected when using API Token, due to that caching
             // SecurityListener.fireLoggedIn(self.getLogin());
         } else {
-            Log.info("Github did not return an access token.");
+            LOGGER.info("Coding did not return an access token.");
         }
 
         String referer = (String)request.getSession().getAttribute(REFERER_ATTRIBUTE);
@@ -445,12 +453,11 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
             content = EntityUtils.toString(entity);
 
         }
-        String parts[] = content.split("&");
-        for (String part : parts) {
-            if (part.startsWith("access_token=")) {
-                String tokenParts[] = part.split("=");
-                return tokenParts[1];
-            }
+        try {
+            Map json = new Gson().fromJson(content, Map.class);
+            return (String) json.get("access_token");
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "fail to parse json from " + content, e);
         }
         return null;
     }
