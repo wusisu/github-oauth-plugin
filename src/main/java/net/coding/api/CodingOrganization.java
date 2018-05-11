@@ -3,7 +3,7 @@ package net.coding.api;
 import java.io.IOException;
 
 public class CodingOrganization extends CodingPerson {
-    protected String login, avatar_url, gravatar_id;
+    protected String avatar_url, gravatar_id;
 
     /*package*/ CodingOrganization wrapUp(Coding root) {
         return (CodingOrganization)super.wrapUp(root);

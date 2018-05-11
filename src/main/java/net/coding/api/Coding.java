@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -105,7 +106,7 @@ public class Coding {
      */
     public Map<String, Set<CodingTeam>> getMyTeams() throws IOException {
         Map<String, Set<CodingTeam>> allMyTeams = new HashMap<String, Set<CodingTeam>>();
-        for (CodingTeam team : retrieve().to("/team/joined", CodingTeam[].class)) {
+        for (CodingTeam team : retrieve().to("/api/team/joined", CodingTeam[].class)) {
             team.wrapUp(this);
             String orgLogin = team.getOrganization().getLogin();
             Set<CodingTeam> teamsPerOrg = allMyTeams.get(orgLogin);
@@ -139,7 +140,8 @@ public class Coding {
     public CodingMyself getMyself() throws IOException {
         requireCredential();
 
-        CodingMyself u = retrieve().to("/current_user", CodingMyself.class);
+        CodingMyself u = retrieve().to("/api/current_user", CodingMyself.class);
+        LOGGER.log(Level.FINE, "fetch current_user " + u);
 
         u.root = this;
         users.put(u.getLogin(), u);

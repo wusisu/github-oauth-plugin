@@ -187,6 +187,8 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
 
         this.me = loadMyself(accessToken);
 
+        LOGGER.log(Level.FINEST, "loadMyself " + this.me);
+
         assert this.me!=null;
 
         setAuthenticated(true);
@@ -205,7 +207,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
             //Search for scopes that allow fetching team membership.  This is documented online.
             //https://developer.github.com/v3/orgs/#list-your-organizations
             //https://developer.github.com/v3/orgs/teams/#list-user-teams
-            if(myRealm.hasScope("read:org") || myRealm.hasScope("admin:org") || myRealm.hasScope("user") || myRealm.hasScope("repo")) {
+            if(myRealm.hasScope("team") || myRealm.hasScope("admin:org") || myRealm.hasScope("user") || myRealm.hasScope("project:depot")) {
                 try{
                     Set<String> myOrgs = userOrganizationCache.get(getName(), new Callable<Set<String>>() {
                         @Override

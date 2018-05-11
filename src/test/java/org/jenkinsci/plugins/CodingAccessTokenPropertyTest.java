@@ -25,6 +25,7 @@ package org.jenkinsci.plugins;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebRequest;
+import com.google.gson.GsonBuilder;
 import hudson.model.User;
 import hudson.util.Scrambler;
 import jenkins.security.ApiTokenProperty;
@@ -122,7 +123,7 @@ public class CodingAccessTokenPropertyTest {
 
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             switch (req.getRequestURI()) {
-                case "/current_user":
+                case "/api/current_user":
                     this.onUser(req, resp);
                     break;
                 case "/users/_specific_login_":
@@ -131,7 +132,7 @@ public class CodingAccessTokenPropertyTest {
                 case "/user/orgs":
                     this.onUserOrgs(req, resp);
                     break;
-                case "/team/joined":
+                case "/api/team/joined":
                     this.onUserTeams(req, resp);
                     break;
                 case "/orgs/coding_dot_net":
@@ -163,36 +164,45 @@ public class CodingAccessTokenPropertyTest {
             }
         }
 
+        private void codingResponse(HttpServletResponse resp, final Object data) throws IOException {
+            HashMap<String, Object> map = new HashMap<>(2);
+            map.put("code", 0);
+            map.put("data", data);
+            resp.getWriter()
+                    .write(
+                            new GsonBuilder()
+                                    .create()
+                                    .toJson(map)
+                    );
+        }
+
         private void onUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            resp.getWriter().write(JSONObject.fromObject(
-                    new HashMap<String, Object>() {{
-                        put("global_key", currentLogin);
-                        put("name", currentLogin + "_name");
-                        // to avoid triggering a second call, due to CodingSecurityRealm:382
-                        put("created_at", "2008-01-14T04:33:35Z");
-                        put("url", serverUri + "/users/_specific_login_");
-                    }}
-            ).toString());
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("global_key", currentLogin);
+            map.put("name", currentLogin + "_name");
+            // to avoid triggering a second call, due to CodingSecurityRealm:382
+            map.put("created_at", "2008-01-14T04:33:35Z");
+            map.put("url", serverUri + "/users/_specific_login_");
+            codingResponse(resp, map);
         }
 
         private void onUserOrgs(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             List<Map<String, Object>> responseBody = new ArrayList<>();
             for (String orgName : organizations) {
                 final String orgName_ = orgName;
-                responseBody.add(new HashMap<String, Object>() {{
-                    put("login", orgName_);
-                }});
+                HashMap<String, Object> map = new HashMap<>();
+                map.put("login", orgName_);
+                responseBody.add(map);
             }
-
-            resp.getWriter().write(JSONArray.fromObject(responseBody).toString());
+            codingResponse(resp, responseBody);
         }
 
         private void onOrgs(HttpServletRequest req, HttpServletResponse resp, final String orgName) throws IOException {
-            Map<String, Object> responseBody = new HashMap<String, Object>() {{
-                put("login", orgName);
-            }};
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("login", orgName);
+            Map<String, Object> responseBody = map;
 
-            resp.getWriter().write(JSONObject.fromObject(responseBody).toString());
+            codingResponse(resp, responseBody);
         }
 
         private void onOrgsMember(HttpServletRequest req, HttpServletResponse resp, String orgName, String userName) throws IOException {
@@ -209,33 +219,34 @@ public class CodingAccessTokenPropertyTest {
             List<Map<String, Object>> responseBody = new ArrayList<>();
             for (String teamName : teams) {
                 final String teamName_ = teamName;
-                responseBody.add(new HashMap<String, Object>() {{
-                    put("id", 7);
-                    put("login", teamName_ + "_login");
-                    put("name", teamName_);
-                    put("organization", new HashMap<String, Object>() {{
-                        put("login", orgName);
-                    }});
-                }});
+                HashMap<String, Object> map = new HashMap<>();
+                map.put("id", 7);
+                map.put("login", teamName_ + "_login");
+                map.put("name", teamName_);
+                HashMap<String, Object> organizationMap = new HashMap<>();
+                organizationMap.put("login", orgName);
+                map.put("organization", organizationMap);
+                responseBody.add(map);
             }
 
-            resp.getWriter().write(JSONArray.fromObject(responseBody).toString());
+            codingResponse(resp, responseBody);
         }
 
         private void onUserTeams(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             List<Map<String, Object>> responseBody = new ArrayList<>();
             for (String teamName : teams) {
                 final String teamName_ = teamName;
-                responseBody.add(new HashMap<String, Object>() {{
-                    put("global_key", teamName_ + "_login");
-                    put("name", teamName_);
-//                    put("organization", new HashMap<String, Object>() {{
-//                        put("login", organizations.get(0));
-//                    }});
-                }});
+                HashMap<String, Object> map = new HashMap<>();
+                map.put("global_key", teamName_ + "_login");
+                map.put("name", teamName_);
+                HashMap<String, Object> organizationMap = new HashMap<>();
+                organizationMap.put("global_key", organizations.get(0));
+                map.put("organization", organizationMap);
+
+                responseBody.add(map);
             }
 
-            resp.getWriter().write(JSONArray.fromObject(responseBody).toString());
+            codingResponse(resp, responseBody);
         }
 
         private void onLoginOAuthAuthorize(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -260,7 +271,7 @@ public class CodingAccessTokenPropertyTest {
         String githubApiUri = serverUri.toString();
         String clientID = "xxx";
         String clientSecret = "yyy";
-        String oauthScopes = "read:org";
+        String oauthScopes = "team";
 
         CodingSecurityRealm codingSecurityRealm = new CodingSecurityRealm(
                 githubWebUri,
@@ -287,7 +298,7 @@ public class CodingAccessTokenPropertyTest {
     public void testUsingGithubToken() throws IOException, SAXException {
         String aliceLogin = "alice";
         servlet.currentLogin = aliceLogin;
-        servlet.organizations = Arrays.asList("http://coding.net");
+        servlet.organizations = Arrays.asList("coding_dot_net");
         servlet.teams = Arrays.asList("team-b");
 
         User aliceUser = User.getById(aliceLogin, true);
@@ -359,7 +370,7 @@ public class CodingAccessTokenPropertyTest {
 
     private void assertResponse(Page p, String expectedLogin, List<String> expectedAuthorities) {
         String response = p.getWebResponse().getContentAsString().trim();
-//        System.out.println(response);
+        System.out.println(response);
         JSONObject respObject = JSONObject.fromObject(response);
         if (expectedLogin != null) {
             assertEquals(expectedLogin, respObject.getString("name"));

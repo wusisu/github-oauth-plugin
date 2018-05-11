@@ -1,6 +1,8 @@
 package net.coding.api;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.io.IOUtils;
 
@@ -307,7 +309,13 @@ public class Requester {
             String data = IOUtils.toString(r);
             if (type!=null)
                 try {
-                    return MAPPER.readValue(data,type);
+                    CodingResult codingResult = new GsonBuilder().create().fromJson(data, CodingResult.class);
+                    Integer code = codingResult.code;
+                    if (code != 0) {
+                        LOGGER.log(Level.WARNING, "api fails for " + uc.getURL().toString() + " coding code is " + code);
+                        return null;
+                    }
+                    return MAPPER.readValue(new GsonBuilder().create().toJson(codingResult.data), type);
                 } catch (JsonMappingException e) {
                     throw (IOException)new IOException("Failed to deserialize " +data).initCause(e);
                 }
@@ -323,6 +331,11 @@ public class Requester {
         } finally {
             IOUtils.closeQuietly(r);
         }
+    }
+
+    private static class CodingResult {
+        Integer code;
+        Object data;
     }
 
     /**
