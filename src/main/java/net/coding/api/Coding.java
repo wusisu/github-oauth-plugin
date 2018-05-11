@@ -123,9 +123,13 @@ public class Coding {
      * Obtains the object that represents the named user.
      */
     public CodingUser getUser(String login) throws IOException {
+        if ("MANAGE_DOMAINS".equals(login)) {
+            LOGGER.log(Level.INFO, "ignore fetch user info for MANAGE_DOMAINS");
+            return null;
+        }
         CodingUser u = users.get(login);
         if (u == null) {
-            u = retrieve().to("/user/key/" + login, CodingUser.class);
+            u = retrieve().to("/api/user/key/" + login, CodingUser.class);
             u.root = this;
             users.put(u.getLogin(), u);
         }
