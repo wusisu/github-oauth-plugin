@@ -3,6 +3,7 @@ package net.coding.api;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.io.IOUtils;
@@ -326,7 +327,18 @@ public class Requester {
                     throw (IOException)new IOException("Failed to deserialize " +data).initCause(e);
                 }
             if (instance!=null)
-                return MAPPER.readerForUpdating(instance).<T>readValue(data);
+                try {
+                    CodingResult codingResult = new GsonBuilder().create().fromJson(data, CodingResult.class);
+                    Integer code = codingResult.code;
+                    if (code != 0) {
+                        LOGGER.log(Level.WARNING, "api fails for " + uc.getURL().toString() + " coding code is " + code);
+                        return null;
+                    }
+                    return MAPPER.readerForUpdating(instance).<T>readValue(new GsonBuilder().create().toJson(codingResult.data));
+                } catch (JsonMappingException e) {
+                    throw (IOException)new IOException("Failed to deserialize " +data).initCause(e);
+                }
+
             return null;
         } catch (FileNotFoundException e) {
             // java.net.URLConnection handles 404 exception has FileNotFoundException, don't wrap exception in HttpException
@@ -341,7 +353,7 @@ public class Requester {
 
     private static class CodingResult {
         Integer code;
-        Object data;
+        JsonElement data;
     }
 
     /**

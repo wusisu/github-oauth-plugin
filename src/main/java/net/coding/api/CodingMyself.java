@@ -128,8 +128,10 @@ public class CodingMyself extends CodingUser {
      *      Always non-null.
      */
     public List<CodingEmail> getEmails2() throws IOException {
+        String fetchEmail = root.retrieve().to("/api/account/email", String.class);
+        email = fetchEmail;
         CodingEmail codingEmail = new CodingEmail();
-        codingEmail.email = email;
+        codingEmail.email = fetchEmail;
         codingEmail.primary = true;
         return Collections.unmodifiableList(Collections.singletonList(codingEmail));
     }

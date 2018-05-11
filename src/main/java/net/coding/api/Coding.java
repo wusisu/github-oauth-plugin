@@ -125,7 +125,7 @@ public class Coding {
     public CodingUser getUser(String login) throws IOException {
         CodingUser u = users.get(login);
         if (u == null) {
-            u = retrieve().to("/api/user/key/" + login, CodingUser.class);
+            u = retrieve().to("/user/key/" + login, CodingUser.class);
             u.root = this;
             users.put(u.getLogin(), u);
         }
