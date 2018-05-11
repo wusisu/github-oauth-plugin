@@ -37,6 +37,8 @@ import jenkins.model.Jenkins;
 import net.coding.api.Coding;
 import net.coding.api.CodingBuilder;
 import net.coding.api.CodingMyself;
+import net.coding.api.CodingOrganization;
+import net.coding.api.CodingPersonSet;
 import net.coding.api.CodingTeam;
 import net.coding.api.CodingUser;
 import net.coding.api.extras.OkHttpConnector;
@@ -44,10 +46,7 @@ import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.acegisecurity.providers.AbstractAuthenticationToken;
 import org.eclipse.jgit.errors.NotSupportedException;
-import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GHTeam;
-import org.kohsuke.github.GHUser;
+import net.coding.api.CodingRepository;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -147,7 +146,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
         public final boolean hasPushAccess;
         public final boolean isPrivate;
 
-        public RepoRights(GHRepository repo) {
+        public RepoRights(CodingRepository repo) {
             if (repo != null) {
                 this.hasAdminAccess = repo.hasAdminAccess();
                 this.hasPullAccess = repo.hasPullAccess();
@@ -406,16 +405,15 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
                 new Callable<Set<String>>() {
                     @Override
                     public Set<String> call() throws Exception {
-//                        List<GHRepository> userRepositoryList = getMyself().listRepositories().asList();
-//                        Set<String> repositoryNames = listToNames(userRepositoryList);
-//                        GHPersonSet<GHOrganization> organizations = getMyself().getAllOrganizations();
-//                        for (GHOrganization organization : organizations) {
-//                            List<GHRepository> orgRepositoryList = organization.listRepositories().asList();
-//                            Set<String> orgRepositoryNames = listToNames(orgRepositoryList);
-//                            repositoryNames.addAll(orgRepositoryNames);
-//                        }
-//                        return repositoryNames;
-                        throw new UnsupportedOperationException();
+                        List<CodingRepository> userRepositoryList = getMyself().listRepositories().asList();
+                        Set<String> repositoryNames = listToNames(userRepositoryList);
+                        CodingPersonSet<CodingOrganization> organizations = getMyself().getAllOrganizations();
+                        for (CodingOrganization organization : organizations) {
+                            List<CodingRepository> orgRepositoryList = organization.listRepositories().asList();
+                            Set<String> orgRepositoryNames = listToNames(orgRepositoryList);
+                            repositoryNames.addAll(orgRepositoryNames);
+                        }
+                        return repositoryNames;
                     }
                 }
             );
@@ -426,9 +424,9 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
         }
     }
 
-    public Set<String> listToNames(Collection<GHRepository> respositories) throws IOException {
+    public Set<String> listToNames(Collection<CodingRepository> respositories) throws IOException {
         Set<String> names = new HashSet<String>();
-        for (GHRepository repository : respositories) {
+        for (CodingRepository repository : respositories) {
             String ownerName = repository.getOwner().getLogin();
             String repoName = repository.getName();
             names.add(ownerName + "/" + repoName);
@@ -478,7 +476,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
         return me.me;
     }
 
-    public GHOrganization loadOrganization(String organization) {
+    public CodingOrganization loadOrganization(String organization) {
         try {
             if (coding != null && isAuthenticated())
 //                return getGitHub().getOrganization(organization);
@@ -498,7 +496,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
                       @Override
                       public RepoRights call() throws Exception {
                           throw new UnsupportedOperationException("");
-//                          GHRepository repo = getGitHub().getRepository(repositoryName);
+//                          CodingRepository repo = getGitHub().getRepository(repositoryName);
 //                          return new RepoRights(repo);
                       }
                   }
@@ -513,9 +511,9 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
       return null;
     }
 
-    public GHTeam loadTeam(String organization, String team) {
+    public CodingTeam loadTeam(String organization, String team) {
         try {
-            GHOrganization org = loadOrganization(organization);
+            CodingOrganization org = loadOrganization(organization);
             if (org != null) {
                 return org.getTeamByName(team);
             }

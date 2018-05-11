@@ -3,8 +3,10 @@ package net.coding.api;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class CodingMyself extends CodingUser {
@@ -63,6 +65,21 @@ public class CodingMyself extends CodingUser {
      */
     public PagedIterable<CodingRepository> listAllRepositories() {
         return listRepositories();
+    }
+
+    /**
+     * Gets the organization that this user belongs to.
+     */
+    public CodingPersonSet<CodingOrganization> getAllOrganizations() throws IOException {
+        CodingPersonSet<CodingOrganization> orgs = new CodingPersonSet<CodingOrganization>();
+//        Set<String> names = new HashSet<String>();
+//        for (CodingOrganization o : root.retrieve().to("/user/orgs", CodingOrganization[].class)) {
+//            if (names.add(o.getLogin()))    // in case of rumoured duplicates in the data
+//                orgs.add(root.getOrganization(o.getLogin()));
+//        }
+
+        orgs.add(root.getOrganization(null));
+        return orgs;
     }
 
     /**

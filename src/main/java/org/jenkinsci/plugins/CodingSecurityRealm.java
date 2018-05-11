@@ -52,6 +52,8 @@ import jenkins.security.MasterToSlaveCallable;
 import jenkins.security.SecurityListener;
 import net.coding.api.CodingEmail;
 import net.coding.api.CodingMyself;
+import net.coding.api.CodingOrganization;
+import net.coding.api.CodingTeam;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.AuthenticationException;
 import org.acegisecurity.AuthenticationManager;
@@ -75,10 +77,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.kohsuke.args4j.Option;
-import org.kohsuke.github.GHEmail;
-import org.kohsuke.github.GHMyself;
-import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHTeam;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Header;
 import org.kohsuke.stapler.HttpRedirect;
@@ -699,7 +697,7 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                 throw new UsernameNotFoundException("Unknown user: " + username);
 
             // Check the username is not an homonym of an organization
-            GHOrganization ghOrg = authToken.loadOrganization(username);
+            CodingOrganization ghOrg = authToken.loadOrganization(username);
             if (ghOrg != null) {
                 throw new UsernameNotFoundException("user(" + username + ") is also an organization");
             }
@@ -757,18 +755,18 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
 
         try {
             int idx = groupName.indexOf(CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR);
-            if (idx > -1 && groupName.length() > idx + 1) { // groupName = "GHOrganization*GHTeam"
+            if (idx > -1 && groupName.length() > idx + 1) { // groupName = "CodingOrganization*CodingTeam"
                 String orgName = groupName.substring(0, idx);
                 String teamName = groupName.substring(idx + 1);
                 LOGGER.config(String.format("Lookup for team %s in organization %s", teamName, orgName));
-                GHTeam ghTeam = authToken.loadTeam(orgName, teamName);
+                CodingTeam ghTeam = authToken.loadTeam(orgName, teamName);
                 if (ghTeam == null) {
                     throw new UsernameNotFoundException("Unknown GitHub team: " + teamName + " in organization "
                             + orgName);
                 }
                 return new CodingOAuthGroupDetails(ghTeam);
-            } else { // groupName = "GHOrganization"
-                GHOrganization ghOrg = authToken.loadOrganization(groupName);
+            } else { // groupName = "CodingOrganization"
+                CodingOrganization ghOrg = authToken.loadOrganization(groupName);
                 if (ghOrg == null) {
                     throw new UsernameNotFoundException("Unknown GitHub organization: " + groupName);
                 }

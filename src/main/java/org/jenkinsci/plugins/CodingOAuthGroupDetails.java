@@ -3,10 +3,9 @@
  */
 package org.jenkinsci.plugins;
 
-import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHTeam;
-
 import hudson.security.GroupDetails;
+import net.coding.api.CodingOrganization;
+import net.coding.api.CodingTeam;
 
 /**
  * @author Mike
@@ -14,15 +13,15 @@ import hudson.security.GroupDetails;
  */
 public class CodingOAuthGroupDetails extends GroupDetails {
 
-    private final GHOrganization org;
-    private final GHTeam team;
+    private final CodingOrganization org;
+    private final CodingTeam team;
     static final String ORG_TEAM_SEPARATOR = "*";
 
     /**
     * Group based on organization name
     * @param org the github organization
     */
-    public CodingOAuthGroupDetails(GHOrganization org) {
+    public CodingOAuthGroupDetails(CodingOrganization org) {
         super();
         this.org = org;
         this.team = null;
@@ -32,7 +31,7 @@ public class CodingOAuthGroupDetails extends GroupDetails {
     * Group based on team name
      * @param team the github team
      */
-    public CodingOAuthGroupDetails(GHTeam team) {
+    public CodingOAuthGroupDetails(CodingTeam team) {
         super();
         this.org = team.getOrganization();
         this.team = team;

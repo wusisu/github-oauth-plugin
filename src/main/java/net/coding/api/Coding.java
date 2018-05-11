@@ -75,13 +75,25 @@ public class Coding {
     }
 
     public CodingOrganization getOrganization(String name) throws IOException {
-        return null;
+        CodingOrganization o = new CodingOrganization();
+        o.global_key = "coding_dot_net";
+        return o;
 //        CodingOrganization o = orgs.get(name);
 //        if (o==null) {
 //            o = retrieve().to("/orgs/" + name, CodingOrganization.class).wrapUp(this);
 //            orgs.put(name,o);
 //        }
 //        return o;
+    }
+
+    /**
+     * Gets the repository object from 'user/reponame' string that GitHub calls as "repository name"
+     *
+     * @see CodingRepository#getName()
+     */
+    public CodingRepository getRepository(String name) throws IOException {
+        String[] tokens = name.split("/");
+        return retrieve().to("/repos/" + tokens[0] + '/' + tokens[1], CodingRepository.class).wrap(this);
     }
 
     /**
