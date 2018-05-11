@@ -3,6 +3,7 @@ package net.coding.api;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.io.IOUtils;
 
@@ -253,6 +254,10 @@ public class Requester {
                 return result;
             } catch (IOException e) {
                 handleApiError(e);
+            } catch (JsonSyntaxException e) {
+                String msg = "not json response for api " + uc.getURL();
+                LOGGER.log(Level.WARNING, msg, e);
+                throw new IOException(msg, e);
             }
         }
     }
@@ -307,6 +312,7 @@ public class Requester {
 
             r = new InputStreamReader(wrapStream(uc.getInputStream()), "UTF-8");
             String data = IOUtils.toString(r);
+            LOGGER.log(Level.FINEST, "api " + uc.getURL() + " reads " + data);
             if (type!=null)
                 try {
                     CodingResult codingResult = new GsonBuilder().create().fromJson(data, CodingResult.class);

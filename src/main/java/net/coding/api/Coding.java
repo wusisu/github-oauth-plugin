@@ -39,7 +39,7 @@ public class Coding {
         if (null != connector) this.connector = connector;
 
         if (oauthAccessToken!=null) {
-            encodedAuthorization = "token "+oauthAccessToken;
+            encodedAuthorization = "access_token "+oauthAccessToken;
         } else {
             if (password!=null) {
                 String authorization = (login + ':' + password);
@@ -125,7 +125,7 @@ public class Coding {
     public CodingUser getUser(String login) throws IOException {
         CodingUser u = users.get(login);
         if (u == null) {
-            u = retrieve().to("/user/key/" + login, CodingUser.class);
+            u = retrieve().to("/api/user/key/" + login, CodingUser.class);
             u.root = this;
             users.put(u.getLogin(), u);
         }

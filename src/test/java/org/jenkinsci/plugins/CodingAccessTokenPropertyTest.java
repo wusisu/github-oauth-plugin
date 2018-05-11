@@ -183,6 +183,7 @@ public class CodingAccessTokenPropertyTest {
             // to avoid triggering a second call, due to CodingSecurityRealm:382
             map.put("created_at", "2008-01-14T04:33:35Z");
             map.put("url", serverUri + "/users/_specific_login_");
+            map.put("email", currentLogin + "@coding.net");
             codingResponse(resp, map);
         }
 
