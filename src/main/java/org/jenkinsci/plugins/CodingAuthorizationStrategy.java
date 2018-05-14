@@ -92,22 +92,23 @@ public class CodingAuthorizationStrategy extends AuthorizationStrategy {
 
     @Nonnull
     public ACL getACL(@Nonnull AbstractItem item) {
-        if(item instanceof MultiBranchProject) {
-            CodingRequireOrganizationMembershipACL githubACL = (CodingRequireOrganizationMembershipACL) getRootACL();
-            return githubACL.cloneForProject(item);
-        } else {
+        // skip repository right now
+//        if(item instanceof MultiBranchProject) {
+//            CodingRequireOrganizationMembershipACL githubACL = (CodingRequireOrganizationMembershipACL) getRootACL();
+//            return githubACL.cloneForProject(item);
+//        } else {
             return getRootACL();
-        }
+//        }
     }
 
     @Nonnull
     public ACL getACL(@Nonnull Job<?,?> job) {
-        if(job instanceof WorkflowJob && job.getProperty(BranchJobProperty.class) != null || job instanceof AbstractProject) {
-            CodingRequireOrganizationMembershipACL githubACL = (CodingRequireOrganizationMembershipACL) getRootACL();
-            return githubACL.cloneForProject(job);
-        } else {
+//        if(job instanceof WorkflowJob && job.getProperty(BranchJobProperty.class) != null || job instanceof AbstractProject) {
+//            CodingRequireOrganizationMembershipACL githubACL = (CodingRequireOrganizationMembershipACL) getRootACL();
+//            return githubACL.cloneForProject(job);
+//        } else {
             return getRootACL();
-        }
+//        }
     }
 
     /**

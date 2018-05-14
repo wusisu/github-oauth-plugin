@@ -287,10 +287,10 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
                 realm.setClientSecret(value);
             } else if (node.toLowerCase().equals("githubweburi")) {
                 realm.setGithubWebUri(value);
-            } else if (node.toLowerCase().equals("githuburi")) { // backwards compatibility for old field
-                realm.setGithubWebUri(value);
-                String apiUrl = realm.determineApiUri(value);
-                realm.setGithubApiUri(apiUrl);
+//            } else if (node.toLowerCase().equals("githuburi")) { // backwards compatibility for old field
+//                realm.setGithubWebUri(value);
+//                String apiUrl = realm.determineApiUri(value);
+//                realm.setGithubApiUri(apiUrl);
             } else if (node.toLowerCase().equals("githubapiuri")) {
                 realm.setGithubApiUri(value);
             } else if (node.toLowerCase().equals("oauthscopes")) {
@@ -307,15 +307,6 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
      */
     public String getGithubWebUri() {
         return githubWebUri;
-    }
-
-    /**
-     * @deprecated use {@link CodingSecurityRealm#getGithubWebUri()} instead.
-     * @return the uri to the web root of Github (varies for Github Enterprise Edition)
-     */
-    @Deprecated
-    public String getGithubUri() {
-        return getGithubWebUri();
     }
 
     /**
@@ -653,7 +644,7 @@ public class CodingSecurityRealm extends AbstractPasswordBasedSecurityRealm impl
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException, DataAccessException {
         //username is in org*team format
-        if(username.indexOf(CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR) >= 0 ) {
+        if(username.contains(CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR)) {
             throw new UsernameNotFoundException("Using org*team format instead of username: " + username);
         }
 

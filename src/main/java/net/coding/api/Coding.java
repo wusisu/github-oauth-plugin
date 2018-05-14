@@ -105,13 +105,13 @@ public class Coding {
      * in a single call.
      */
     public Map<String, Set<CodingTeam>> getMyTeams() throws IOException {
-        Map<String, Set<CodingTeam>> allMyTeams = new HashMap<String, Set<CodingTeam>>();
+        Map<String, Set<CodingTeam>> allMyTeams = new HashMap<>();
         for (CodingTeam team : retrieve().to("/api/team/joined", CodingTeam[].class)) {
             team.wrapUp(this);
             String orgLogin = team.getOrganization().getLogin();
             Set<CodingTeam> teamsPerOrg = allMyTeams.get(orgLogin);
             if (teamsPerOrg == null) {
-                teamsPerOrg = new HashSet<CodingTeam>();
+                teamsPerOrg = new HashSet<>();
             }
             teamsPerOrg.add(team);
             allMyTeams.put(orgLogin, teamsPerOrg);

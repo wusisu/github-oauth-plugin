@@ -39,14 +39,13 @@ import net.coding.api.CodingBuilder;
 import net.coding.api.CodingMyself;
 import net.coding.api.CodingOrganization;
 import net.coding.api.CodingPersonSet;
+import net.coding.api.CodingRepository;
 import net.coding.api.CodingTeam;
 import net.coding.api.CodingUser;
 import net.coding.api.extras.OkHttpConnector;
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
 import org.acegisecurity.providers.AbstractAuthenticationToken;
-import org.eclipse.jgit.errors.NotSupportedException;
-import net.coding.api.CodingRepository;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -118,7 +117,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
     private final Cache<String, RepoRights> repositoryCache =
             CacheBuilder.newBuilder().expireAfterWrite(1, CACHE_EXPIRY).build();
 
-    private final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    private final List<GrantedAuthority> authorities = new ArrayList<>();
 
     private static final GithubUser UNKNOWN_USER = new GithubUser(null);
     private static final GithubMyself UNKNOWN_TOKEN = new GithubMyself(null);
@@ -235,8 +234,9 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
                         LOGGER.log(Level.FINE, "Fetch teams for user " + userName + " in organization " + orgLogin);
                         authorities.add(new GrantedAuthorityImpl(orgLogin));
                         for (CodingTeam team : teamEntry.getValue()) {
-                            authorities.add(new GrantedAuthorityImpl(orgLogin + CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR
-                                    + team.getName()));
+                            String role = orgLogin + CodingOAuthGroupDetails.ORG_TEAM_SEPARATOR + team.getName();
+                            authorities.add(new GrantedAuthorityImpl(role));
+                            LOGGER.finest(userName + " add authority " + role);
                         }
                     }
                 } catch (ExecutionException e) {
@@ -361,8 +361,7 @@ public class CodingAuthenticationToken extends AbstractAuthenticationToken {
             Set<String> v = userOrganizationCache.get(candidateName,new Callable<Set<String>>() {
                 @Override
                 public Set<String> call() throws Exception {
-//                    return getGitHub().getMyOrganizations().keySet();
-                    throw new NotSupportedException("");
+                    return getGitHub().getMyOrganizations().keySet();
                 }
             });
 
